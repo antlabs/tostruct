@@ -7,7 +7,7 @@ import (
 	"encoding/json"
 )
 
-func valid[T string | []byte](t T) bool {
+func Valid[T string | []byte](t T) bool {
 	var x interface{} = t
 
 	var b []byte

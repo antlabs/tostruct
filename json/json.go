@@ -12,37 +12,40 @@ import (
 	"github.com/gobeam/stringy"
 )
 
-type FromJSON struct {
-	obj    interface{}
-	Indent int
-	buf    bytes.Buffer
+type JSON struct {
+	obj        interface{}  // json/yaml 解成map[string]interface{} 或者[]interface{}
+	Indent     int          // 控制输出缩进
+	buf        bytes.Buffer // 存放内联结构体的数据
+	inline     bool         // 是否内联
+	tag        string       // json, yaml, 默认json
+	structName string       //最外层结构体名
 }
 
 const (
 	structStart     = "type %s struct {\n"
 	structEnd       = "}"
 	startArrayStart = "%s []"
-	startMap        = "%s struct {\n"
+	startInlineMap  = "%s struct {\n"
+	endInlineMap    = "} `json:\"%s\"`"
 	emptyMap        = "%s struct {" +
 		"} `json:\"%s\"`" +
 		"}"
 	keyName = "%s %s `json:\"%s\"`"
-	endMap  = "} `json:\"%s\"`"
 )
 
 // TODO:
 // 分开结构体
 // 分开结构体，同名情况
-func New(jsonBytes []byte, structName string) (f *FromJSON, err error) {
+func New(jsonBytes []byte, structName string, tag string) (f *JSON, err error) {
 	var o map[string]interface{}
 	jsonBytes = bytes.TrimSpace(jsonBytes)
-	if b := valid(jsonBytes); !b {
+	if b := Valid(jsonBytes); !b {
 		return nil, fmt.Errorf("tostruct:Not qualified json")
 	}
 
 	var a []interface{}
 
-	rv := &FromJSON{}
+	rv := &JSON{}
 
 	rv.buf.WriteString(fmt.Sprintf(structStart, structName))
 	if jsonBytes[0] == '{' {
@@ -57,13 +60,13 @@ func New(jsonBytes []byte, structName string) (f *FromJSON, err error) {
 	return rv, nil
 }
 
-func (f *FromJSON) Marshal() (b []byte, err error) {
+func (f *JSON) Marshal() (b []byte, err error) {
 	f.marshalValue("", f.obj, false, 0)
 	f.buf.WriteString(structEnd)
 	return f.buf.Bytes(), nil
 }
 
-func (f *FromJSON) marshalMap(key string, m map[string]interface{}, depth int) {
+func (f *JSON) marshalMap(key string, m map[string]interface{}, depth int) {
 
 	buf := &f.buf
 	remaining := len(m)
@@ -82,7 +85,7 @@ func (f *FromJSON) marshalMap(key string, m map[string]interface{}, depth int) {
 	sort.Strings(keys)
 
 	if len(key) > 0 {
-		buf.WriteString(fmt.Sprintf(startMap, fieldName))
+		buf.WriteString(fmt.Sprintf(startInlineMap, fieldName))
 	}
 
 	for _, key := range keys {
@@ -96,11 +99,11 @@ func (f *FromJSON) marshalMap(key string, m map[string]interface{}, depth int) {
 
 	f.writeIndent(buf, depth)
 	if len(key) > 0 {
-		buf.WriteString(fmt.Sprintf(endMap, tagName))
+		buf.WriteString(fmt.Sprintf(endInlineMap, tagName))
 	}
 }
 
-func (f *FromJSON) marshalArray(key string, a []interface{}, depth int) {
+func (f *JSON) marshalArray(key string, a []interface{}, depth int) {
 	buf := &f.buf
 	if len(a) == 0 {
 		buf.WriteString(fmt.Sprintf("%s interface{} `json:\"json:%s\"`", key, key))
@@ -117,7 +120,7 @@ func getFieldAndTagName(key string) (string, string) {
 	return fieldName, tagName
 }
 
-func (f *FromJSON) marshalValue(key string, obj interface{}, fromArray bool, depth int) {
+func (f *JSON) marshalValue(key string, obj interface{}, fromArray bool, depth int) {
 	buf := &f.buf
 	typePrefix := ""
 	if fromArray {
@@ -149,11 +152,11 @@ func (f *FromJSON) marshalValue(key string, obj interface{}, fromArray bool, dep
 	}
 }
 
-func (f *FromJSON) writeIndent(buf *bytes.Buffer, depth int) {
+func (f *JSON) writeIndent(buf *bytes.Buffer, depth int) {
 	buf.WriteString(strings.Repeat(" ", f.Indent*depth))
 }
 
-func (f *FromJSON) writeObjSep(buf *bytes.Buffer) {
+func (f *JSON) writeObjSep(buf *bytes.Buffer) {
 	if f.Indent != 0 {
 		buf.WriteByte('\n')
 	} else {

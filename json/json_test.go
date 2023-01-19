@@ -17,7 +17,7 @@ func Test_Gen_Obj_JSON(t *testing.T) {
    "third" : [{"b1" : "b1", "b2" : "b2"}]
 }
   `
-	j, err := New([]byte(obj), "reqName")
+	j, err := New([]byte(obj), "reqName", "json")
 	assert.NoError(t, err)
 	all, err := j.Marshal()
 	assert.NoError(t, err)

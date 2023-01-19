@@ -27,7 +27,7 @@ func Test_JSON_Valid(t *testing.T) {
 		{data: "[]", need: true},
 		{data: "", need: false},
 	} {
-		assert.Equal(t, valid(tc.data), tc.need)
+		assert.Equal(t, Valid(tc.data), tc.need)
 	}
 
 }
@@ -40,7 +40,7 @@ func Test_JSON_Valid2(t *testing.T) {
 		{data: []byte("[]"), need: true},
 		{data: []byte(""), need: false},
 	} {
-		assert.Equal(t, valid(tc.data), tc.need, fmt.Sprintf("index:%d", i))
+		assert.Equal(t, Valid(tc.data), tc.need, fmt.Sprintf("index:%d", i))
 	}
 
 }
