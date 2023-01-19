@@ -1,3 +1,5 @@
+// guonaihong 2023
+// apache 2.0
 package fromjson
 
 import (
