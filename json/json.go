@@ -1,6 +1,6 @@
-// guonaihong 2023
+// antlabs, guonaihong 2023
 // apache 2.0
-package fromjson
+package json
 
 import (
 	"bytes"

@@ -1,6 +1,6 @@
 // antlabs, guonaihong 2022
 // apache 2.0
-package fromhead
+package header
 
 import (
 	"go/format"

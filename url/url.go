@@ -1,5 +1,6 @@
 // antlabs, guonaihong 2023
-package fromurl
+// apache 2.0
+package url
 
 import (
 	"net/url"

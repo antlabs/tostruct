@@ -1,4 +1,6 @@
-package fromurl
+// antlabs, guonaihong 2023
+// apache 2.0
+package url
 
 import (
 	"go/format"
