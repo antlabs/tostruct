@@ -8,6 +8,8 @@ import (
 	"fmt"
 	"sort"
 	"strings"
+
+	"github.com/gobeam/stringy"
 )
 
 type FromJSON struct {
@@ -66,8 +68,9 @@ func (f *FromJSON) marshalMap(key string, m map[string]interface{}, depth int) {
 	buf := &f.buf
 	remaining := len(m)
 
+	fieldName, tagName := getFieldAndTagName(key)
 	if remaining == 0 {
-		buf.WriteString(fmt.Sprintf(emptyMap, key, key))
+		buf.WriteString(fmt.Sprintf(emptyMap, fieldName, tagName))
 		return
 	}
 
@@ -79,7 +82,7 @@ func (f *FromJSON) marshalMap(key string, m map[string]interface{}, depth int) {
 	sort.Strings(keys)
 
 	if len(key) > 0 {
-		buf.WriteString(fmt.Sprintf(startMap, key))
+		buf.WriteString(fmt.Sprintf(startMap, fieldName))
 	}
 
 	for _, key := range keys {
@@ -93,7 +96,7 @@ func (f *FromJSON) marshalMap(key string, m map[string]interface{}, depth int) {
 
 	f.writeIndent(buf, depth)
 	if len(key) > 0 {
-		buf.WriteString(fmt.Sprintf(endMap, key))
+		buf.WriteString(fmt.Sprintf(endMap, tagName))
 	}
 }
 
@@ -107,6 +110,13 @@ func (f *FromJSON) marshalArray(key string, a []interface{}, depth int) {
 	f.marshalValue(key, a[0], true, depth)
 }
 
+func getFieldAndTagName(key string) (string, string) {
+	str := stringy.New(key)
+	fieldName := str.CamelCase("?", "")
+	tagName := str.SnakeCase("?", "").ToLower()
+	return fieldName, tagName
+}
+
 func (f *FromJSON) marshalValue(key string, obj interface{}, fromArray bool, depth int) {
 	buf := &f.buf
 	typePrefix := ""
@@ -114,26 +124,28 @@ func (f *FromJSON) marshalValue(key string, obj interface{}, fromArray bool, dep
 		typePrefix = "[]"
 	}
 
+	fieldName, tagName := getFieldAndTagName(key)
+
 	switch v := obj.(type) {
 	case map[string]interface{}:
 		f.marshalMap(key, v, depth)
 	case []interface{}:
 		f.marshalArray(key, v, depth)
 	case string:
-		buf.WriteString(fmt.Sprintf("%s %sstring `json:\"%s\"`", key, typePrefix, key))
+		buf.WriteString(fmt.Sprintf("%s %sstring `json:\"%s\"`", fieldName, typePrefix, tagName))
 	case float64:
 		// int
 		if float64(int(v)) == v {
-			buf.WriteString(fmt.Sprintf("%s %sint `json:\"%s\"`", key, typePrefix, key))
+			buf.WriteString(fmt.Sprintf("%s %sint `json:\"%s\"`", fieldName, typePrefix, tagName))
 			return
 		}
 
 		// float64
-		buf.WriteString(fmt.Sprintf("%s %sfloat64 `json:\"%s\"`", key, typePrefix, key))
+		buf.WriteString(fmt.Sprintf("%s %sfloat64 `json:\"%s\"`", fieldName, typePrefix, tagName))
 	case bool:
-		buf.WriteString(fmt.Sprintf("%s %sbool `json:\"%s\"`", key, typePrefix, key))
+		buf.WriteString(fmt.Sprintf("%s %sbool `json:\"%s\"`", fieldName, typePrefix, tagName))
 	case nil:
-		buf.WriteString(fmt.Sprintf("%s interface{} `json:\"%s\"`", key, key))
+		buf.WriteString(fmt.Sprintf("%s interface{} `json:\"%s\"`", fieldName, tagName))
 	}
 }
 
