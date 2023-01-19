@@ -1,3 +1,5 @@
+// antlabs, guonaihong 2022
+// apache 2.0
 package map2struct
 
 import (
