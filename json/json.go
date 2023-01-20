@@ -9,6 +9,7 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/antlabs/gstl/mapex"
 	"github.com/gobeam/stringy"
 )
 
@@ -64,8 +65,8 @@ type Third struct {
 */
 
 const (
-	structStart     = "type %s struct {\n"
-	structEnd       = "}"
+	startStruct     = "type %s struct {\n"
+	endStruct       = "}"
 	startArrayStart = "%s []"
 	startInlineMap  = "%s struct {\n"       // 内联结构体开始
 	endInlineMap    = "} `json:\"%s\"`"     // 内联结构体结束
@@ -112,7 +113,7 @@ func new(jsonBytes []byte, opt ...JSONConfig) (f *JSON, err error) {
 		rv.structName = defStructName
 	}
 
-	rv.buf.WriteString(fmt.Sprintf(structStart, rv.structName))
+	rv.buf.WriteString(fmt.Sprintf(startStruct, rv.structName))
 	if jsonBytes[0] == '{' {
 		json.Unmarshal(jsonBytes, &o)
 		rv.obj = o
@@ -127,7 +128,15 @@ func new(jsonBytes []byte, opt ...JSONConfig) (f *JSON, err error) {
 
 func (f *JSON) marshal() (b []byte, err error) {
 	f.marshalValue("", f.obj, false, 0, &f.buf)
-	f.buf.WriteString(structEnd)
+	f.buf.WriteString(endStruct)
+	if !f.inline {
+		keys := mapex.Keys(f.structBuf)
+		sort.Strings(keys)
+
+		for _, v := range keys {
+			f.buf.WriteString(f.structBuf[v].String())
+		}
+	}
 	return f.buf.Bytes(), nil
 }
 
@@ -170,6 +179,7 @@ func (f *JSON) marshalMap(key string, m map[string]interface{}, depth int, buf *
 			buf.WriteString(fmt.Sprintf(startInlineMap, fieldName))
 		} else {
 			structTypeName, buf2 := f.getStructTypeName(fieldName)
+			buf2.WriteString(fmt.Sprintf("\n"+startStruct, structTypeName))
 			buf.WriteString(fmt.Sprintf(startMap, fieldName, structTypeName, tagName))
 			buf = buf2
 		}
@@ -189,6 +199,7 @@ func (f *JSON) marshalMap(key string, m map[string]interface{}, depth int, buf *
 		if f.inline {
 			buf.WriteString(fmt.Sprintf(endInlineMap, tagName))
 		} else {
+			buf.WriteString(endStruct)
 
 		}
 	}

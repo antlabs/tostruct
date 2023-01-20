@@ -3,6 +3,7 @@ module github.com/antlabs/tostruct
 go 1.19
 
 require (
+	github.com/antlabs/gstl v0.0.5
 	github.com/gobeam/stringy v0.0.5
 	github.com/stretchr/testify v1.8.1
 )
