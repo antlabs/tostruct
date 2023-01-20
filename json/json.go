@@ -69,16 +69,30 @@ const (
 	startArrayStart = "%s []"
 	startInlineMap  = "%s struct {\n"       // 内联结构体开始
 	endInlineMap    = "} `json:\"%s\"`"     // 内联结构体结束
-	structMap       = "%s %s `json:\"%s\"`" // 拆开结构体开始
+	startMap        = "%s %s `json:\"%s\"`" // 拆开结构体开始
 	endMap          = "}"                   // 拆开结构体结束
 	emptyMap        = "%s struct {" +
 		"} `json:\"%s\"`" +
 		"}"
 	keyName       = "%s %s `json:\"%s\"`"
 	defStructName = "AutoGeneration"
+	nilFmt        = "%s interface{} `json:\"%s\"`"
+	stringFmt     = "%s %sstring `json:\"%s\"`"
+	boolFmt       = "%s %sbool `json:\"%s\"`"
+	float64Fmt    = "%s %sfloat64 `json:\"%s\"`"
+	intFmt        = "%s %sint `json:\"%s\"`"
 )
 
-func New(jsonBytes []byte, opt ...JSONConfig) (f *JSON, err error) {
+func Marshal(bytes []byte, opt ...JSONConfig) (b []byte, err error) {
+	f, err := new(bytes, opt...)
+	if err != nil {
+		return nil, err
+	}
+
+	return f.marshal()
+}
+
+func new(jsonBytes []byte, opt ...JSONConfig) (f *JSON, err error) {
 	var o map[string]interface{}
 	jsonBytes = bytes.TrimSpace(jsonBytes)
 
@@ -88,7 +102,7 @@ func New(jsonBytes []byte, opt ...JSONConfig) (f *JSON, err error) {
 
 	var a []interface{}
 
-	rv := &JSON{inline: true}
+	rv := &JSON{inline: true, structBuf: make(map[string]*bytes.Buffer)}
 
 	for _, o := range opt {
 		o(rv)
@@ -111,10 +125,27 @@ func New(jsonBytes []byte, opt ...JSONConfig) (f *JSON, err error) {
 	return rv, nil
 }
 
-func (f *JSON) Marshal() (b []byte, err error) {
+func (f *JSON) marshal() (b []byte, err error) {
 	f.marshalValue("", f.obj, false, 0, &f.buf)
 	f.buf.WriteString(structEnd)
 	return f.buf.Bytes(), nil
+}
+
+func (f *JSON) getStructTypeName(fieldName string) (structTypeName string, buf *bytes.Buffer) {
+
+	structTypeName = fieldName
+	for count := 0; ; count++ {
+
+		if _, ok := f.structBuf[structTypeName]; ok {
+			// 比较少见的情况， 结构体里面有重名变量
+			// 使用fieldName + 数字编号的形式解决重名问题
+			structTypeName = fmt.Sprintf("%s%d", fieldName, count)
+			continue
+		}
+		buf = bytes.NewBuffer([]byte{})
+		f.structBuf[structTypeName] = buf
+		return
+	}
 }
 
 func (f *JSON) marshalMap(key string, m map[string]interface{}, depth int, buf *bytes.Buffer) {
@@ -125,18 +156,6 @@ func (f *JSON) marshalMap(key string, m map[string]interface{}, depth int, buf *
 	if remaining == 0 {
 		buf.WriteString(fmt.Sprintf(emptyMap, fieldName, tagName))
 		return
-	}
-
-	structTypeName := fieldName
-	for count := 0; ; count++ {
-
-		if _, ok := f.structBuf[structTypeName]; ok {
-			// 比较少见的情况， 结构体里面有重名变量
-			// 使用fieldName + 数字编号的形式解决重名问题
-			structTypeName = fmt.Sprintf("%s%d", fieldName, count)
-			continue
-		}
-		break
 	}
 
 	keys := make([]string, 0)
@@ -150,7 +169,9 @@ func (f *JSON) marshalMap(key string, m map[string]interface{}, depth int, buf *
 		if f.inline {
 			buf.WriteString(fmt.Sprintf(startInlineMap, fieldName))
 		} else {
-
+			structTypeName, buf2 := f.getStructTypeName(fieldName)
+			buf.WriteString(fmt.Sprintf(startMap, fieldName, structTypeName, tagName))
+			buf = buf2
 		}
 	}
 
@@ -203,20 +224,20 @@ func (f *JSON) marshalValue(key string, obj interface{}, fromArray bool, depth i
 	case []interface{}:
 		f.marshalArray(key, v, depth, buf)
 	case string:
-		buf.WriteString(fmt.Sprintf("%s %sstring `json:\"%s\"`", fieldName, typePrefix, tagName))
+		buf.WriteString(fmt.Sprintf(stringFmt, fieldName, typePrefix, tagName))
 	case float64:
 		// int
 		if float64(int(v)) == v {
-			buf.WriteString(fmt.Sprintf("%s %sint `json:\"%s\"`", fieldName, typePrefix, tagName))
+			buf.WriteString(fmt.Sprintf(intFmt, fieldName, typePrefix, tagName))
 			return
 		}
 
 		// float64
-		buf.WriteString(fmt.Sprintf("%s %sfloat64 `json:\"%s\"`", fieldName, typePrefix, tagName))
+		buf.WriteString(fmt.Sprintf(float64Fmt, fieldName, typePrefix, tagName))
 	case bool:
-		buf.WriteString(fmt.Sprintf("%s %sbool `json:\"%s\"`", fieldName, typePrefix, tagName))
+		buf.WriteString(fmt.Sprintf(boolFmt, fieldName, typePrefix, tagName))
 	case nil:
-		buf.WriteString(fmt.Sprintf("%s interface{} `json:\"%s\"`", fieldName, tagName))
+		buf.WriteString(fmt.Sprintf(nilFmt, fieldName, tagName))
 	}
 }
 
