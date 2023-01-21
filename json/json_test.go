@@ -8,6 +8,7 @@ import (
 	"os"
 	"testing"
 
+	"github.com/antlabs/tostruct/option"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -19,9 +20,9 @@ func Test_Gen_Obj_JSON(t *testing.T) {
    "third" : [{"b1" : "b1", "b2" : "b2"}]
 }
   `
-	all, err := Marshal([]byte(obj), WithStructName("reqName"), WithTagName("json"))
+	all, err := Marshal([]byte(obj), option.WithStructName("reqName"), option.WithTagName("json"))
 	assert.NoError(t, err)
-	//fmt.Println(string(all))
+	fmt.Println(string(all))
 
 	need, err := os.ReadFile("../testdata/test1.txt")
 	//fmt.Println(string(all))
@@ -38,7 +39,7 @@ func Test_Gen_Obj_JSON2(t *testing.T) {
    "third" : [{"b1" : "b1", "b2" : "b2"}]
 }
   `
-	all, err := Marshal([]byte(obj), WithStructName("reqName"), WithTagName("json"), WithNotInline())
+	all, err := Marshal([]byte(obj), option.WithStructName("reqName"), option.WithTagName("json"), option.WithNotInline())
 	assert.NoError(t, err)
 
 	fmt.Println(string(all))
@@ -57,7 +58,7 @@ func Test_Gen_Obj_JSON3(t *testing.T) {
    "fourth" : null
 }
   `
-	all, err := Marshal([]byte(obj), WithStructName("reqName"), WithTagName("json"), WithNotInline())
+	all, err := Marshal([]byte(obj), option.WithStructName("reqName"), option.WithTagName("json"), option.WithNotInline())
 	assert.NoError(t, err)
 
 	fmt.Println(string(all))
@@ -77,7 +78,7 @@ func Test_Gen_Obj_JSON4(t *testing.T) {
    "fourth" : null
 }]
   `
-	all, err := Marshal([]byte(obj), WithStructName("reqName"), WithTagName("json"), WithNotInline())
+	all, err := Marshal([]byte(obj), option.WithStructName("reqName"), option.WithTagName("json"), option.WithNotInline())
 	assert.NoError(t, err)
 
 	fmt.Println(string(all))
@@ -108,12 +109,12 @@ func Test_Gen_Obj_JSON5(t *testing.T) {
 
 	for k, v := range [][]byte{
 		func() []byte {
-			all, err := Marshal([]byte(obj), WithStructName("reqName"), WithTagName("json"))
+			all, err := Marshal([]byte(obj), option.WithStructName("reqName"), option.WithTagName("json"))
 			assert.NoError(t, err)
 			return all
 		}(),
 		func() []byte {
-			all, err := Marshal([]byte(obj), WithStructName("reqName"), WithTagName("json"), WithNotInline())
+			all, err := Marshal([]byte(obj), option.WithStructName("reqName"), option.WithTagName("json"), option.WithNotInline())
 			assert.NoError(t, err)
 			return all
 		}(),

@@ -12,17 +12,16 @@ import (
 
 	"github.com/antlabs/gstl/mapex"
 	"github.com/antlabs/tostruct/internal/tab"
+	"github.com/antlabs/tostruct/option"
 	"github.com/gobeam/stringy"
 )
 
 type JSON struct {
-	obj        interface{}              // json/yaml 解成map[string]interface{} 或者[]interface{}
-	Indent     int                      // 控制输出缩进
-	buf        bytes.Buffer             // 存放内联结构体的数据
-	inline     bool                     // 是否内联
-	tag        string                   // json, yaml, 默认json
-	structName string                   // 最外层结构体名
-	structBuf  map[string]*bytes.Buffer // 记录拆分结构体
+	option.Option
+	obj       interface{}              // json/yaml 解成map[string]interface{} 或者[]interface{}
+	Indent    int                      // 控制输出缩进
+	buf       bytes.Buffer             // 存放内联结构体的数据
+	structBuf map[string]*bytes.Buffer // 记录拆分结构体
 }
 
 // 原始json
@@ -87,7 +86,7 @@ const (
 	intFmt        = "%s %sint `json:\"%s\"`"
 )
 
-func Marshal(bytes []byte, opt ...JSONConfig) (b []byte, err error) {
+func Marshal(bytes []byte, opt ...option.OptionFunc) (b []byte, err error) {
 	f, err := new(bytes, opt...)
 	if err != nil {
 		return nil, err
@@ -96,7 +95,7 @@ func Marshal(bytes []byte, opt ...JSONConfig) (b []byte, err error) {
 	return f.marshal()
 }
 
-func new(jsonBytes []byte, opt ...JSONConfig) (f *JSON, err error) {
+func new(jsonBytes []byte, opt ...option.OptionFunc) (f *JSON, err error) {
 	var o map[string]interface{}
 	jsonBytes = bytes.TrimSpace(jsonBytes)
 
@@ -106,18 +105,19 @@ func new(jsonBytes []byte, opt ...JSONConfig) (f *JSON, err error) {
 
 	var a []interface{}
 
-	rv := &JSON{inline: true, structBuf: make(map[string]*bytes.Buffer), structName: defStructName, tag: "json"}
+	rv := &JSON{structBuf: make(map[string]*bytes.Buffer),
+		Option: option.Option{Tag: "json", StructName: defStructName, Inline: true}}
 
 	for _, o := range opt {
-		o(rv)
+		o(&rv.Option)
 	}
 
 	if jsonBytes[0] == '{' {
-		rv.buf.WriteString(fmt.Sprintf(startStruct, rv.structName))
+		rv.buf.WriteString(fmt.Sprintf(startStruct, rv.StructName))
 		json.Unmarshal(jsonBytes, &o)
 		rv.obj = o
 	} else if jsonBytes[0] == '[' {
-		rv.buf.WriteString(fmt.Sprintf(startArrayStruct, rv.structName))
+		rv.buf.WriteString(fmt.Sprintf(startArrayStruct, rv.StructName))
 		json.Unmarshal(jsonBytes, &a)
 		rv.obj = a
 	}
@@ -129,7 +129,7 @@ func new(jsonBytes []byte, opt ...JSONConfig) (f *JSON, err error) {
 func (f *JSON) marshal() (b []byte, err error) {
 	f.marshalValue("", f.obj, false, 0, &f.buf)
 	f.buf.WriteString(endStruct)
-	if !f.inline {
+	if !f.Inline {
 		keys := mapex.Keys(f.structBuf)
 		sort.Strings(keys)
 
@@ -183,7 +183,7 @@ func (f *JSON) marshalMap(key string, m map[string]interface{}, typePrefix strin
 	sort.Strings(keys)
 
 	if len(key) > 0 {
-		if f.inline {
+		if f.Inline {
 			buf.WriteString(fmt.Sprintf(startInlineMap, fieldName, typePrefix))
 		} else {
 			// 生成struct类型名和子结构体可以保存的子buf
@@ -208,7 +208,7 @@ func (f *JSON) marshalMap(key string, m map[string]interface{}, typePrefix strin
 
 	f.writeIndent(buf, depth)
 	if len(key) > 0 {
-		if f.inline {
+		if f.Inline {
 			buf.WriteString(fmt.Sprintf(endInlineMap, tagName))
 		} else {
 			buf.WriteString(endStruct + "\n")

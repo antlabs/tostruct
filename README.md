@@ -6,6 +6,7 @@ json/http header/query string 转成struct
 ```go
 import (
     "github.com/antlabs/tostruct/json"
+    "github.com/antlabs/tostruct/option"
 )
 var str = `{
   "action": "Deactivate user",
@@ -24,7 +25,7 @@ var str = `{
 }`
 
 // 父子结构合在一起
-all, _ := json.Marshal([]byte(obj), json.WithStructName("reqName"), json.WithTagName("json"))
+all, _ := json.Marshal([]byte(obj), option.WithStructName("reqName"))
 fmt.Println(string(all))
 /*
 type reqName struct {
@@ -44,7 +45,7 @@ type reqName struct {
 */
 
 // 子结构拆分
-all, _ := json.Marshal([]byte(obj), json.WithStructName("reqName"), json.WithTagName("json"), json.WithNotInline())
+all, _ := json.Marshal([]byte(obj), option.WithStructName("reqName"), option.WithNotInline())
 fmt.Println(string(all))
 /*
 type reqName struct {
@@ -63,5 +64,5 @@ type Entities struct {
 	Username  string `json:"username"`
 	UUID      string `json:"uuid"`
 }
-/*
+*/
 ```
