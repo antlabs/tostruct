@@ -24,6 +24,10 @@ type JSON struct {
 	structBuf map[string]*bytes.Buffer // 记录拆分结构体
 }
 
+type Type interface {
+	[]byte | map[string]any | []any
+}
+
 // 原始json
 /*
 {
@@ -86,8 +90,8 @@ const (
 	intFmt        = "%s %sint `json:\"%s\"`"
 )
 
-func Marshal(bytes []byte, opt ...option.OptionFunc) (b []byte, err error) {
-	f, err := new(bytes, opt...)
+func Marshal[T Type](t T, opt ...option.OptionFunc) (b []byte, err error) {
+	f, err := new(t, opt...)
 	if err != nil {
 		return nil, err
 	}
@@ -95,31 +99,55 @@ func Marshal(bytes []byte, opt ...option.OptionFunc) (b []byte, err error) {
 	return f.marshal()
 }
 
-func new(jsonBytes []byte, opt ...option.OptionFunc) (f *JSON, err error) {
-	var o map[string]interface{}
-	jsonBytes = bytes.TrimSpace(jsonBytes)
-
-	if b := Valid(jsonBytes); !b {
-		return nil, fmt.Errorf("tostruct.json:Not qualified json")
-	}
-
-	var a []interface{}
-
-	rv := &JSON{structBuf: make(map[string]*bytes.Buffer),
+func newDefault() *JSON {
+	return &JSON{structBuf: make(map[string]*bytes.Buffer),
 		Option: option.Option{Tag: "json", StructName: defStructName, Inline: true}}
 
-	for _, o := range opt {
-		o(&rv.Option)
-	}
+}
+func new[T Type](t T, opt ...option.OptionFunc) (f *JSON, err error) {
+	var tmp any = t
+	var rv *JSON
 
-	if jsonBytes[0] == '{' {
+	switch data := tmp.(type) {
+
+	case []byte:
+		jsonBytes := bytes.TrimSpace(data)
+
+		if b := Valid(jsonBytes); !b {
+			return nil, fmt.Errorf("tostruct.json:Not qualified json")
+		}
+
+		var a []interface{}
+		var o map[string]interface{}
+
+		rv = newDefault()
+		for _, o := range opt {
+			o(&rv.Option)
+		}
+
+		if jsonBytes[0] == '{' {
+			rv.buf.WriteString(fmt.Sprintf(startStruct, rv.StructName))
+			json.Unmarshal(jsonBytes, &o)
+			rv.obj = o
+		} else if jsonBytes[0] == '[' {
+			rv.buf.WriteString(fmt.Sprintf(startArrayStruct, rv.StructName))
+			json.Unmarshal(jsonBytes, &a)
+			rv.obj = a
+		}
+	case map[string]any:
+		rv = newDefault()
+		for _, o := range opt {
+			o(&rv.Option)
+		}
 		rv.buf.WriteString(fmt.Sprintf(startStruct, rv.StructName))
-		json.Unmarshal(jsonBytes, &o)
-		rv.obj = o
-	} else if jsonBytes[0] == '[' {
+		rv.obj = data
+	case []any:
+		rv = newDefault()
+		for _, o := range opt {
+			o(&rv.Option)
+		}
 		rv.buf.WriteString(fmt.Sprintf(startArrayStruct, rv.StructName))
-		json.Unmarshal(jsonBytes, &a)
-		rv.obj = a
+		rv.obj = data
 	}
 
 	rv.Indent = 4

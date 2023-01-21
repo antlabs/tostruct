@@ -3,6 +3,7 @@
 package header
 
 import (
+	"fmt"
 	"go/format"
 	"net/http"
 	"testing"
@@ -37,6 +38,7 @@ func TestHead2struct(t *testing.T) {
 
 		assert.NoError(t, err)
 		b, err := format.Source([]byte(tc.need))
+		fmt.Println(string(b))
 		assert.NoError(t, err)
 		assert.Equal(t, string(b), string(res))
 
