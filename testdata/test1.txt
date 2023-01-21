@@ -4,7 +4,7 @@ type reqName struct {
 		B1 string `json:"b1"`
 		B2 string `json:"b2"`
 	} `json:"second"`
-	Third struct {
+	Third []struct {
 		B1 string `json:"b1"`
 		B2 string `json:"b2"`
 	} `json:"third"`

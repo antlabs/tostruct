@@ -1,7 +1,7 @@
 type reqName struct {
 	First  []string `json:"first"`
 	Second Second   `json:"second"`
-	Third  Third    `json:"third"`
+	Third  []Third  `json:"third"`
 }
 
 type Second struct {

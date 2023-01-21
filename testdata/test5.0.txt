@@ -1,0 +1,14 @@
+type reqName struct {
+	Action   string `json:"action"`
+	Duration int    `json:"duration"`
+	Entities []struct {
+		Activated bool   `json:"activated"`
+		Created   int    `json:"created"`
+		Modified  int    `json:"modified"`
+		Nickname  string `json:"nickname"`
+		Type      string `json:"type"`
+		Username  string `json:"username"`
+		UUID      string `json:"uuid"`
+	} `json:"entities"`
+	Timestamp int `json:"timestamp"`
+}
