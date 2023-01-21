@@ -20,10 +20,10 @@ func TestHead2struct(t *testing.T) {
 	for _, tc := range []testCase{
 		{
 			need: "type test struct{\n" +
-				"Bool    bool    `header:\"Bool\"`\n" +
-				"Float64 float64 `header:\"Float64\"`\n" +
-				"Int     int     `header:\"Int\"`\n" +
-				"String  string  `header:\"String\"`\n" +
+				"Bool    bool    `header:\"bool\"`\n" +
+				"Float64 float64 `header:\"float64\"`\n" +
+				"Int     int     `header:\"int\"`\n" +
+				"String  string  `header:\"string\"`\n" +
 				"}",
 			head: []string{"int", "1", "float64", "1.1", "bool", "true", "string", "hello"},
 		},

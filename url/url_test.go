@@ -3,6 +3,7 @@
 package url
 
 import (
+	"fmt"
 	"go/format"
 	"testing"
 
@@ -29,7 +30,7 @@ func TestUrl2struct(t *testing.T) {
 		},
 		{
 			need: "type test struct{\n" +
-				"Hotword_id    int    `form:\"hotword_id\"`\n" +
+				"HotwordId    int    `form:\"hotword_id\"`\n" +
 				"Token  string  `form:\"token\"`\n" +
 				"}",
 
@@ -37,6 +38,8 @@ func TestUrl2struct(t *testing.T) {
 		},
 	} {
 		res, err := Marshal(tc.query, option.WithStructName("test"))
+		fmt.Println(string(res))
+
 		assert.NoError(t, err)
 		b, err := format.Source([]byte(tc.need))
 		assert.NoError(t, err)

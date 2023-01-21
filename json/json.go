@@ -11,9 +11,9 @@ import (
 	"strings"
 
 	"github.com/antlabs/gstl/mapex"
+	"github.com/antlabs/tostruct/internal/name"
 	"github.com/antlabs/tostruct/internal/tab"
 	"github.com/antlabs/tostruct/option"
-	"github.com/gobeam/stringy"
 )
 
 type JSON struct {
@@ -169,7 +169,7 @@ func (f *JSON) marshalMap(key string, m map[string]interface{}, typePrefix strin
 
 	remaining := len(m)
 
-	fieldName, tagName := getFieldAndTagName(key)
+	fieldName, tagName := name.GetFieldAndTagName(key)
 	if remaining == 0 {
 		buf.WriteString(fmt.Sprintf(emptyMap, fieldName, tagName))
 		return
@@ -226,20 +226,13 @@ func (f *JSON) marshalArray(key string, a []interface{}, depth int, buf *bytes.B
 	f.marshalValue(key, a[0], true, depth, buf)
 }
 
-func getFieldAndTagName(key string) (string, string) {
-	str := stringy.New(key)
-	fieldName := str.CamelCase("?", "")
-	tagName := str.SnakeCase("?", "").ToLower()
-	return fieldName, tagName
-}
-
 func (f *JSON) marshalValue(key string, obj interface{}, fromArray bool, depth int, buf *bytes.Buffer) {
 	typePrefix := ""
 	if fromArray {
 		typePrefix = "[]"
 	}
 
-	fieldName, tagName := getFieldAndTagName(key)
+	fieldName, tagName := name.GetFieldAndTagName(key)
 
 	tmpFieldName := strings.ToUpper(fieldName)
 	if tab.InitialismsTab[tmpFieldName] {

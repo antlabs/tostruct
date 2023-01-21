@@ -7,9 +7,9 @@ import (
 	"fmt"
 	"go/format"
 	"sort"
-	"strings"
 
 	"github.com/antlabs/tostruct/internal/guesstype"
+	"github.com/antlabs/tostruct/internal/name"
 	"github.com/antlabs/tostruct/option"
 )
 
@@ -17,7 +17,7 @@ func MapGenStruct(m map[string][]string, opt option.Option) (res []byte, err err
 	var out bytes.Buffer
 
 	structName := opt.StructName
-	tagName := opt.Tag
+	tag := opt.Tag
 	fmt.Fprintf(&out, "type %s struct {", structName)
 	var ks []string
 	for k := range m {
@@ -29,19 +29,19 @@ func MapGenStruct(m map[string][]string, opt option.Option) (res []byte, err err
 
 	for _, k := range ks {
 		v := m[k]
-		tagStr := fmt.Sprintf("`%s:%q`", tagName, k)
-		k = strings.Title(k)
+		fieldName, tagName := name.GetFieldAndTagName(k)
+		tagStr := fmt.Sprintf("`%s:%q`", tag, tagName)
 		if len(v) == 0 {
-			fmt.Fprintf(&out, "%s string %s\n", k, tagStr)
+			fmt.Fprintf(&out, "%s string %s\n", fieldName, tagStr)
 			continue
 		}
 
 		if len(v) > 1 {
-			fmt.Fprintf(&out, "%s []%s %s\n", k, guesstype.TypeOf(v[0]), tagStr)
+			fmt.Fprintf(&out, "%s []%s %s\n", fieldName, guesstype.TypeOf(v[0]), tagStr)
 			continue
 		}
 
-		fmt.Fprintf(&out, "%s %s %s\n", k, guesstype.TypeOf(v[0]), tagStr)
+		fmt.Fprintf(&out, "%s %s %s\n", fieldName, guesstype.TypeOf(v[0]), tagStr)
 	}
 
 	fmt.Fprint(&out, "}")
