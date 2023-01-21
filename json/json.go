@@ -106,14 +106,10 @@ func new(jsonBytes []byte, opt ...JSONConfig) (f *JSON, err error) {
 
 	var a []interface{}
 
-	rv := &JSON{inline: true, structBuf: make(map[string]*bytes.Buffer)}
+	rv := &JSON{inline: true, structBuf: make(map[string]*bytes.Buffer), structName: defStructName, tag: "json"}
 
 	for _, o := range opt {
 		o(rv)
-	}
-
-	if rv.structName == "" {
-		rv.structName = defStructName
 	}
 
 	if jsonBytes[0] == '{' {
