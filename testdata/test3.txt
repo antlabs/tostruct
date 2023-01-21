@@ -1,0 +1,6 @@
+type reqName struct {
+	First  bool        `json:"first"`
+	Fourth interface{} `json:"fourth"`
+	Second int         `json:"second"`
+	Third  float64     `json:"third"`
+}

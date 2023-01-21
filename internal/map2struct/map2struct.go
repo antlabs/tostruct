@@ -43,8 +43,6 @@ func MapGenStruct(m map[string][]string, structName string, tagName string) (res
 
 	fmt.Fprint(&out, "}")
 
-	//fmt.Println(out.String())
-
 	src, err := format.Source(out.Bytes())
 	if err != nil {
 		return "", err

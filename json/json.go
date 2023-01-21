@@ -66,14 +66,15 @@ type Third struct {
 */
 
 const (
-	startStruct     = "type %s struct {\n"
-	endStruct       = "}"
-	startArrayStart = "%s []"
-	startInlineMap  = "%s struct {\n"       // 内联结构体开始
-	endInlineMap    = "} `json:\"%s\"`"     // 内联结构体结束
-	startMap        = "%s %s `json:\"%s\"`" // 拆开结构体开始
-	endMap          = "}"                   // 拆开结构体结束
-	emptyMap        = "%s struct {" +
+	startStruct      = "type %s struct {\n"
+	startArrayStruct = "type %s []struct {\n"
+	endStruct        = "}"
+	startArrayStart  = "%s []"
+	startInlineMap   = "%s struct {\n"       // 内联结构体开始
+	endInlineMap     = "} `json:\"%s\"`"     // 内联结构体结束
+	startMap         = "%s %s `json:\"%s\"`" // 拆开结构体开始
+	endMap           = "}"                   // 拆开结构体结束
+	emptyMap         = "%s struct {" +
 		"} `json:\"%s\"`" +
 		"}"
 	keyName       = "%s %s `json:\"%s\"`"
@@ -99,7 +100,7 @@ func new(jsonBytes []byte, opt ...JSONConfig) (f *JSON, err error) {
 	jsonBytes = bytes.TrimSpace(jsonBytes)
 
 	if b := Valid(jsonBytes); !b {
-		return nil, fmt.Errorf("tostruct:Not qualified json")
+		return nil, fmt.Errorf("tostruct.json:Not qualified json")
 	}
 
 	var a []interface{}
@@ -114,11 +115,12 @@ func new(jsonBytes []byte, opt ...JSONConfig) (f *JSON, err error) {
 		rv.structName = defStructName
 	}
 
-	rv.buf.WriteString(fmt.Sprintf(startStruct, rv.structName))
 	if jsonBytes[0] == '{' {
+		rv.buf.WriteString(fmt.Sprintf(startStruct, rv.structName))
 		json.Unmarshal(jsonBytes, &o)
 		rv.obj = o
 	} else if jsonBytes[0] == '[' {
+		rv.buf.WriteString(fmt.Sprintf(startArrayStruct, rv.structName))
 		json.Unmarshal(jsonBytes, &a)
 		rv.obj = a
 	}

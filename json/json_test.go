@@ -46,3 +46,41 @@ func Test_Gen_Obj_JSON2(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, string(need), string(all))
 }
+
+func Test_Gen_Obj_JSON3(t *testing.T) {
+
+	obj := `
+{
+   "first" : true,
+   "second" : 0,
+   "third" : 1.1,
+   "fourth" : null
+}
+  `
+	all, err := Marshal([]byte(obj), WithStructName("reqName"), WithTagName("json"), WithNotInline())
+	assert.NoError(t, err)
+
+	fmt.Println(string(all))
+	need, err := os.ReadFile("../testdata/test3.txt")
+	assert.NoError(t, err)
+	assert.Equal(t, string(bytes.TrimSpace(need)), string(all))
+}
+
+func Test_Gen_Obj_JSON4(t *testing.T) {
+
+	obj := `
+ [{
+   "first" : true,
+   "second" : 0,
+   "third" : 1.1,
+   "fourth" : null
+}]
+  `
+	all, err := Marshal([]byte(obj), WithStructName("reqName"), WithTagName("json"), WithNotInline())
+	assert.NoError(t, err)
+
+	fmt.Println(string(all))
+	need, err := os.ReadFile("../testdata/test4.txt")
+	assert.NoError(t, err)
+	assert.Equal(t, string(bytes.TrimSpace(need)), string(all))
+}
