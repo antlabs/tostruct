@@ -6,6 +6,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"go/format"
 	"sort"
 	"strings"
 
@@ -133,11 +134,19 @@ func (f *JSON) marshal() (b []byte, err error) {
 		keys := mapex.Keys(f.structBuf)
 		sort.Strings(keys)
 
-		for _, v := range keys {
+		for i, v := range keys {
+			if i == 0 {
+				f.buf.WriteByte('\n')
+			}
 			f.buf.WriteString(f.structBuf[v].String())
 		}
 	}
-	return f.buf.Bytes(), nil
+
+	if b, err = format.Source(f.buf.Bytes()); err != nil {
+		return nil, err
+	}
+
+	return b, nil
 }
 
 func (f *JSON) getStructTypeName(fieldName string) (structTypeName string, buf *bytes.Buffer) {
@@ -181,6 +190,7 @@ func (f *JSON) marshalMap(key string, m map[string]interface{}, depth int, buf *
 			structTypeName, buf2 := f.getStructTypeName(fieldName)
 			buf2.WriteString(fmt.Sprintf("\n"+startStruct, structTypeName))
 			buf.WriteString(fmt.Sprintf(startMap, fieldName, structTypeName, tagName))
+			depth = 0
 			buf = buf2
 		}
 	}
@@ -199,7 +209,7 @@ func (f *JSON) marshalMap(key string, m map[string]interface{}, depth int, buf *
 		if f.inline {
 			buf.WriteString(fmt.Sprintf(endInlineMap, tagName))
 		} else {
-			buf.WriteString(endStruct)
+			buf.WriteString(endStruct + "\n")
 
 		}
 	}

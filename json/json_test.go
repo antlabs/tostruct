@@ -24,6 +24,8 @@ func Test_Gen_Obj_JSON(t *testing.T) {
 	//fmt.Println(string(all))
 
 	need, err := os.ReadFile("../testdata/test1.txt")
+	//fmt.Println(string(all))
+
 	assert.NoError(t, err)
 	assert.Equal(t, string(bytes.TrimSpace(need)), string(all))
 }
@@ -40,7 +42,7 @@ func Test_Gen_Obj_JSON2(t *testing.T) {
 	assert.NoError(t, err)
 
 	fmt.Println(string(all))
-	need, err := os.ReadFile("../testdata/test1.txt")
+	need, err := os.ReadFile("../testdata/test2.txt")
 	assert.NoError(t, err)
-	assert.Equal(t, string(bytes.TrimSpace(need)), string(all))
+	assert.Equal(t, string(need), string(all))
 }

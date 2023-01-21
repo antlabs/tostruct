@@ -1,11 +1,11 @@
 type reqName struct {
-    First []string `json:"first"`
-    Second struct {
-        B1 string `json:"b1"`
-        B2 string `json:"b2"`
-    } `json:"second"`
-    Third struct {
-        B1 string `json:"b1"`
-        B2 string `json:"b2"`
-    } `json:"third"`
+	First  []string `json:"first"`
+	Second struct {
+		B1 string `json:"b1"`
+		B2 string `json:"b2"`
+	} `json:"second"`
+	Third struct {
+		B1 string `json:"b1"`
+		B2 string `json:"b2"`
+	} `json:"third"`
 }
