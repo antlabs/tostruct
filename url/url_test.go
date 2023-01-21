@@ -6,6 +6,7 @@ import (
 	"go/format"
 	"testing"
 
+	"github.com/antlabs/tostruct/option"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -35,11 +36,11 @@ func TestUrl2struct(t *testing.T) {
 			query: "/a/v1/b/c/d?token=a&hotword_id=1",
 		},
 	} {
-		res, err := New(tc.query).StructName("test").Gen()
+		res, err := Marshal(tc.query, option.WithStructName("test"))
 		assert.NoError(t, err)
 		b, err := format.Source([]byte(tc.need))
 		assert.NoError(t, err)
-		assert.Equal(t, string(b), res)
+		assert.Equal(t, string(b), string(res))
 
 	}
 }

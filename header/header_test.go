@@ -4,8 +4,10 @@ package header
 
 import (
 	"go/format"
+	"net/http"
 	"testing"
 
+	"github.com/antlabs/tostruct/option"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -26,17 +28,17 @@ func TestHead2struct(t *testing.T) {
 			head: []string{"int", "1", "float64", "1.1", "bool", "true", "string", "hello"},
 		},
 	} {
-		gs := New("test")
+		h := make(http.Header)
 		for i := 0; i < len(tc.head); i += 2 {
-			gs.AppendHeader([]byte(tc.head[i]), []byte(tc.head[i+1]))
+			h.Set(tc.head[i], tc.head[i+1])
 		}
 
-		res, err := gs.Gen()
+		res, err := Marshal(h, option.WithStructName("test"))
 
 		assert.NoError(t, err)
 		b, err := format.Source([]byte(tc.need))
 		assert.NoError(t, err)
-		assert.Equal(t, string(b), res)
+		assert.Equal(t, string(b), string(res))
 
 	}
 }

@@ -3,27 +3,19 @@
 package header
 
 import (
-	"bytes"
 	"net/http"
 
 	"github.com/antlabs/tostruct/internal/map2struct"
+	"github.com/antlabs/tostruct/option"
 )
 
-type FromHead struct {
-	buf        bytes.Buffer
-	structName string
-	h          http.Header
-}
+func Marshal(h http.Header, opt ...option.OptionFunc) (structBytes []byte, err error) {
 
-func New(structName string) *FromHead {
-	return &FromHead{structName: structName, h: make(http.Header)}
-}
+	var opts option.Option
+	opts.Tag = "header"
+	for _, o := range opt {
+		o(&opts)
+	}
 
-func (h *FromHead) AppendHeader(hk, hv []byte) *FromHead {
-	h.h.Add(string(hk), string(hv))
-	return h
-}
-
-func (h *FromHead) Gen() (string, error) {
-	return map2struct.MapGenStruct(h.h, h.structName, "header")
+	return map2struct.MapGenStruct(map[string][]string(h), opts)
 }

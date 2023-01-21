@@ -10,11 +10,14 @@ import (
 	"strings"
 
 	"github.com/antlabs/tostruct/internal/guesstype"
+	"github.com/antlabs/tostruct/option"
 )
 
-func MapGenStruct(m map[string][]string, structName string, tagName string) (res string, err error) {
+func MapGenStruct(m map[string][]string, opt option.Option) (res []byte, err error) {
 	var out bytes.Buffer
 
+	structName := opt.StructName
+	tagName := opt.Tag
 	fmt.Fprintf(&out, "type %s struct {", structName)
 	var ks []string
 	for k := range m {
@@ -45,8 +48,8 @@ func MapGenStruct(m map[string][]string, structName string, tagName string) (res
 
 	src, err := format.Source(out.Bytes())
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
-	return string(src), nil
+	return src, nil
 }
