@@ -1,5 +1,7 @@
 # tostruct
-json/http header/query string 转成struct
+json/yaml/http header/query string 转成struct
+[![Go](https://github.com/antlabs/tostruct/workflows/Go/badge.svg)](https://github.com/antlabs/tostruct/actions)
+[![codecov](https://codecov.io/gh/antlabs/tostruct/branch/master/graph/badge.svg)](https://codecov.io/gh/antlabs/tostruct)
 
 ## 一、json字符串生成结构体
 ```go
@@ -26,7 +28,7 @@ func main() {
 	}`
 
 	// 父子结构合在一起
-	all, _ := json.Marshal([]byte(obj), option.WithStructName("reqName"))
+	all, _ := json.Marshal([]byte(str), option.WithStructName("reqName"))
 	fmt.Println(string(all))
 	/*
 	type reqName struct {
@@ -46,7 +48,7 @@ func main() {
 	*/
 
 	// 子结构拆分
-	all, _ := json.Marshal([]byte(obj), option.WithStructName("reqName"), option.WithNotInline())
+	all, _ := json.Marshal([]byte(str), option.WithStructName("reqName"), option.WithNotInline())
 	fmt.Println(string(all))
 	/*
 	type reqName struct {
