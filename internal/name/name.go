@@ -1,3 +1,5 @@
+// antlabs, guonaihong 2023
+// apache 2.0
 package name
 
 import "github.com/gobeam/stringy"
