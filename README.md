@@ -1,5 +1,5 @@
 # tostruct
-json/yaml/http header/query string 转成struct
+json/yaml/http header/query string 转成struct定义，免去手写struct的烦恼.    
 [![Go](https://github.com/antlabs/tostruct/workflows/Go/badge.svg)](https://github.com/antlabs/tostruct/actions)
 [![codecov](https://codecov.io/gh/antlabs/tostruct/branch/master/graph/badge.svg)](https://codecov.io/gh/antlabs/tostruct)
 
