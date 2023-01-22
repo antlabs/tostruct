@@ -127,3 +127,81 @@ type test struct {
 }
 
 ```
+
+## 四、yaml生成结构体
+```go
+import (
+    "github.com/antlabs/tostruct/url"
+    "github.com/antlabs/tostruct/option"
+	"github.com/antlabs/tostruct/yaml"
+)
+
+func main() {
+	str := `
+a: 1
+b: 3.14
+c: hello
+d:
+  - aa
+  - bb
+e:
+  - a: 1
+    b: 3.14
+    c: hello
+f:
+  first: 1
+  second: 3.14
+`
+
+	all, err := Marshal([]byte(str), option.WithStructName("reqName"))
+	if err != nil {
+		return
+	}
+	fmt.Println(all)
+	/*
+type reqName struct {
+	A int      `yaml:"a"`
+	B float64  `yaml:"b"`
+	C string   `yaml:"c"`
+	D []string `yaml:"d"`
+	E []struct {
+		A int     `yaml:"a"`
+		B float64 `yaml:"b"`
+		C string  `yaml:"c"`
+	} `yaml:"e"`
+	F struct {
+		First  int     `yaml:"first"`
+		Second float64 `yaml:"second"`
+	} `yaml:"f"`
+}
+
+	*/
+
+	all, err := Marshal([]byte(str), option.WithStructName("reqName"), option.WithNotInline())
+	if err != nil {
+		return
+	}
+	fmt.Println(all)
+/*
+type reqName struct {
+	A int      `yaml:"a"`
+	B float64  `yaml:"b"`
+	C string   `yaml:"c"`
+	D []string `yaml:"d"`
+	E []E      `yaml:"e"`
+	F F        `yaml:"f"`
+}
+
+type E struct {
+	A int     `yaml:"a"`
+	B float64 `yaml:"b"`
+	C string  `yaml:"c"`
+}
+
+type F struct {
+	First  int     `yaml:"first"`
+	Second float64 `yaml:"second"`
+}
+*/
+}
+```
