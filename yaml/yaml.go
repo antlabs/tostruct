@@ -16,9 +16,6 @@ func Marshal(bytes []byte, opt ...option.OptionFunc) (b []byte, err error) {
 			return nil, err
 		}
 
-	}
-
-	if a != nil {
 		return json.Marshal(a, opt...)
 	}
 

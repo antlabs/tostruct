@@ -1,0 +1,19 @@
+type reqName struct {
+	A int      `yaml:"a"`
+	B float64  `yaml:"b"`
+	C string   `yaml:"c"`
+	D []string `yaml:"d"`
+	E []E      `yaml:"e"`
+	F F        `yaml:"f"`
+}
+
+type E struct {
+	A int     `yaml:"a"`
+	B float64 `yaml:"b"`
+	C string  `yaml:"c"`
+}
+
+type F struct {
+	First  int     `yaml:"first"`
+	Second float64 `yaml:"second"`
+}

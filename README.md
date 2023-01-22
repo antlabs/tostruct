@@ -101,7 +101,7 @@ type test struct {
 	*/
 }
 ```
-三、查询字符串生成结构体
+## 三、查询字符串生成结构体
 ```go
 import (
     "github.com/antlabs/tostruct/url"

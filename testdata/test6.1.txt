@@ -1,0 +1,19 @@
+type reqName struct {
+	A int      `json:"a"`
+	B float64  `json:"b"`
+	C string   `json:"c"`
+	D []string `json:"d"`
+	E []E      `json:"e"`
+	F F        `json:"f"`
+}
+
+type E struct {
+	A int     `json:"a"`
+	B float64 `json:"b"`
+	C string  `json:"c"`
+}
+
+type F struct {
+	First  int     `json:"first"`
+	Second float64 `json:"second"`
+}
