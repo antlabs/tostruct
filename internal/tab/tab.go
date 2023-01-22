@@ -6,4 +6,6 @@ var InitialismsTab = map[string]bool{
 	"UUID": true,
 	"API":  true,
 	"HTTP": true,
+	"URI":  true,
+	"URL":  true,
 }
