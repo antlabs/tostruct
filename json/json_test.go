@@ -170,3 +170,45 @@ func Test_Gen_Obj_JSON6(t *testing.T) {
 	}
 
 }
+
+func Test_Gen_Obj_JSON7(t *testing.T) {
+
+	obj := `
+{
+  "action": "get",
+  "count": 0,
+  "data": {
+    "a123": "delivered"
+  },
+  "duration": 5,
+  "entities": [],
+  "timestamp": 1542601830084,
+  "uri": "http://XXXX/XXXX/XXXX/users/user1/offline_msg_status/123"
+}
+  `
+
+	for _, v := range [][]byte{
+		func() []byte {
+			all, err := Marshal([]byte(obj), option.WithStructName("reqName"), option.WithTagName("json"), option.WithSpecifyType(map[string]string{
+				".data": "map[string]string",
+			}))
+			assert.NoError(t, err)
+			return all
+		}(),
+		func() []byte {
+			all, err := Marshal([]byte(obj), option.WithStructName("reqName"), option.WithTagName("json"), option.WithNotInline(), option.WithSpecifyType(map[string]string{
+				".data": "map[string]string",
+			}))
+			assert.NoError(t, err)
+			return all
+		}(),
+	} {
+
+		all := v
+		fmt.Println(string(all))
+		need, err := os.ReadFile("../testdata/testjson7.0.txt")
+		assert.NoError(t, err)
+		assert.Equal(t, string(bytes.TrimSpace(need)), string(bytes.TrimSpace(all)))
+	}
+
+}
