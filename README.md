@@ -227,7 +227,9 @@ obj := `
   "uri": "http://XXXX/XXXX/XXXX/users/user1/offline_msg_status/123"
 }
   `
-// 默认data成员会转成结构体。有时需要它转成map[string]string类型，这
+// 默认对象是转成结构体的，比如这里的data成员，有些接口返回的key是变动的，比如key是用户名value是消息是否投递成功(假装在im系统中)
+// 此类业务就需要转成map[string]string类型，这里就可以用上option.WithSpecifyType
+// 传参的类型是map[string]string， key为json路径，value值是要指定的类型
 all, err := Marshal([]byte(obj), option.WithStructName("reqName"), option.WithTagName("json"), option.WithSpecifyType(map[string]string{
 	".data": "map[string]string",
 }))

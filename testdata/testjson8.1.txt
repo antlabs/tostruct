@@ -1,0 +1,13 @@
+type reqName struct {
+	Action    string      `json:"action"`
+	Count     int         `json:"count"`
+	Data      Data        `json:"data"`
+	Duration  int         `json:"duration"`
+	entities  interface{} `json:"json:entities"`
+	Timestamp int         `json:"timestamp"`
+	URI       string      `json:"uri"`
+}
+
+type Data struct {
+	Data map[string]string `json:"data"`
+}
