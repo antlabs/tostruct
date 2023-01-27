@@ -88,6 +88,7 @@ const (
 	boolFmt       = "%s %sbool `%s:\"%s\"`"
 	float64Fmt    = "%s %sfloat64 `%s:\"%s\"`"
 	intFmt        = "%s %sint `%s:\"%s\"`"
+	specifytFmt   = "%s %s `%s:\"%s\"`"
 )
 
 func Marshal[T Type](t T, opt ...option.OptionFunc) (b []byte, err error) {
@@ -104,6 +105,7 @@ func newDefault() *JSON {
 		Option: option.Option{Tag: "json", StructName: defStructName, Inline: true}}
 
 }
+
 func new[T Type](t T, opt ...option.OptionFunc) (f *JSON, err error) {
 	var tmp any = t
 	var rv *JSON
@@ -155,7 +157,7 @@ func new[T Type](t T, opt ...option.OptionFunc) (f *JSON, err error) {
 }
 
 func (f *JSON) marshal() (b []byte, err error) {
-	f.marshalValue("", f.obj, false, 0, &f.buf)
+	f.marshalValue("", f.obj, false, 0, &f.buf, "")
 	f.buf.WriteString(endStruct)
 	if !f.Inline {
 		keys := mapex.Keys(f.structBuf)
@@ -170,6 +172,7 @@ func (f *JSON) marshal() (b []byte, err error) {
 	}
 
 	if b, err = format.Source(f.buf.Bytes()); err != nil {
+		fmt.Printf("%s\n", f.buf.String())
 		return nil, err
 	}
 
@@ -193,7 +196,11 @@ func (f *JSON) getStructTypeName(fieldName string) (structTypeName string, buf *
 	}
 }
 
-func (f *JSON) marshalMap(key string, m map[string]interface{}, typePrefix string, depth int, buf *bytes.Buffer) {
+func appendKeyPath(pathKey string, key string) string {
+	return fmt.Sprintf("%s.%s", pathKey, strings.ToLower(key))
+}
+
+func (f *JSON) marshalMap(key string, m map[string]interface{}, typePrefix string, depth int, buf *bytes.Buffer, pathKey string) {
 
 	remaining := len(m)
 
@@ -212,6 +219,7 @@ func (f *JSON) marshalMap(key string, m map[string]interface{}, typePrefix strin
 
 	if len(key) > 0 {
 		if f.Inline {
+			// 如果是内嵌结构体
 			buf.WriteString(fmt.Sprintf(startInlineMap, fieldName, typePrefix))
 		} else {
 			// 生成struct类型名和子结构体可以保存的子buf
@@ -229,7 +237,7 @@ func (f *JSON) marshalMap(key string, m map[string]interface{}, typePrefix strin
 
 		f.writeIndent(buf, depth+1)
 
-		f.marshalValue(key, m[key], false, depth+1, buf)
+		f.marshalValue(key, m[key], false, depth+1, buf, appendKeyPath(pathKey, key))
 
 		f.writeObjSep(buf)
 	}
@@ -245,22 +253,30 @@ func (f *JSON) marshalMap(key string, m map[string]interface{}, typePrefix strin
 	}
 }
 
-func (f *JSON) marshalArray(key string, a []interface{}, depth int, buf *bytes.Buffer) {
+func (f *JSON) marshalArray(key string, a []interface{}, depth int, buf *bytes.Buffer, keyPath string) {
 	if len(a) == 0 {
 		buf.WriteString(fmt.Sprintf("%s interface{} `json:\"json:%s\"`", key, key))
 		return
 	}
 
-	f.marshalValue(key, a[0], true, depth, buf)
+	f.marshalValue(key, a[0], true, depth, buf, keyPath)
 }
 
-func (f *JSON) marshalValue(key string, obj interface{}, fromArray bool, depth int, buf *bytes.Buffer) {
+func (f *JSON) marshalValue(key string, obj interface{}, fromArray bool, depth int, buf *bytes.Buffer, keyPath string) {
 	typePrefix := ""
 	if fromArray {
 		typePrefix = "[]"
 	}
 
 	fieldName, tagName := name.GetFieldAndTagName(key)
+
+	if f.TypeMap != nil {
+		fieldType, ok := f.TypeMap[keyPath]
+		if ok {
+			buf.WriteString(fmt.Sprintf(specifytFmt, fieldName, fieldType, f.Tag, tagName))
+			return
+		}
+	}
 
 	tmpFieldName := strings.ToUpper(fieldName)
 	if tab.InitialismsTab[tmpFieldName] {
@@ -269,9 +285,9 @@ func (f *JSON) marshalValue(key string, obj interface{}, fromArray bool, depth i
 
 	switch v := obj.(type) {
 	case map[string]interface{}:
-		f.marshalMap(key, v, typePrefix, depth, buf)
+		f.marshalMap(key, v, typePrefix, depth, buf, keyPath)
 	case []interface{}:
-		f.marshalArray(key, v, depth, buf)
+		f.marshalArray(key, v, depth, buf, keyPath+"[0]")
 	case string:
 		buf.WriteString(fmt.Sprintf(stringFmt, fieldName, typePrefix, f.Tag, tagName))
 	case float64: //json默认解析的数字是float64类型

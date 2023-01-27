@@ -8,6 +8,7 @@ type Option struct {
 	Inline     bool
 	Tag        string
 	StructName string
+	TypeMap    map[string]string
 }
 
 // 控制生成的结构体是否内联
@@ -40,5 +41,24 @@ type Third struct {
 func WithStructName(name string) OptionFunc {
 	return func(c *Option) {
 		c.StructName = name
+	}
+}
+
+// 指定类型, datal默认转成struct， 这里直接指定生成map[string]string类型
+// {
+//
+//		"data" : {
+//		  "user1": "111"
+//		}
+//	}
+//
+//	WithSpecifyType(map[string]string{
+//	   ".data": "map[string]string"
+//	})
+//
+// 目录只支持json/yaml
+func WithSpecifyType(typeMap map[string]string) OptionFunc {
+	return func(c *Option) {
+		c.TypeMap = typeMap
 	}
 }

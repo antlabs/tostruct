@@ -5,7 +5,8 @@
 json/yaml/http header/query string 转成struct定义，免去手写struct的烦恼.    
 
 
-## 一、json字符串生成结构体
+## 一、json/yaml/http header/query string 生成结构体
+### 1.1 json字符串生成结构体
 ```go
 import (
     "github.com/antlabs/tostruct/json"
@@ -73,7 +74,7 @@ func main() {
 }
 ```
 
-## 二、http header生成结构体
+### 1.2 http header生成结构体
 ```go
 import (
     "github.com/antlabs/tostruct/header"
@@ -105,7 +106,7 @@ type test struct {
 	*/
 }
 ```
-## 三、查询字符串生成结构体
+### 1.3、查询字符串生成结构体
 ```go
 import (
     "github.com/antlabs/tostruct/url"
@@ -132,7 +133,7 @@ type test struct {
 
 ```
 
-## 四、yaml生成结构体
+### 1.4 yaml生成结构体
 ```go
 import (
     "github.com/antlabs/tostruct/url"
@@ -208,4 +209,40 @@ type F struct {
 }
 */
 }
+```
+
+## 二、各种配置项函数用法
+### 2.1 option.WithSpecifyType 指定生成类型
+```go
+obj := `
+{
+  "action": "get",
+  "count": 0,
+  "data": {
+    "a123": "delivered"
+  },
+  "duration": 5,
+  "entities": [],
+  "timestamp": 1542601830084,
+  "uri": "http://XXXX/XXXX/XXXX/users/user1/offline_msg_status/123"
+}
+  `
+// 默认对象是转成结构体的，比如这里的data成员，有些接口返回的key是变动的，比如key是用户名value是消息是否投递成功(假装在im系统中)
+// 此类业务就需要转成map[string]string类型，这里就可以用上option.WithSpecifyType
+// 传参的类型是map[string]string， key为json路径，value值是要指定的类型
+all, err := Marshal([]byte(obj), option.WithStructName("reqName"), option.WithTagName("json"), option.WithSpecifyType(map[string]string{
+	".data": "map[string]string",
+}))
+
+// output all
+type reqName struct {
+	Action    string            `json:"action"`
+	Count     int               `json:"count"`
+	Data      map[string]string `json:"data"`
+	Duration  int               `json:"duration"`
+	entities  interface{}       `json:"json:entities"`
+	Timestamp int               `json:"timestamp"`
+	URI       string            `json:"uri"`
+}
+
 ```
