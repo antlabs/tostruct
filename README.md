@@ -212,7 +212,7 @@ type F struct {
 ```
 
 ## 二、各种配置项函数用法
-### 2.1 option.WithSpecifyType 指定生成类型
+### 2.1 option.WithSpecifyType 指定生成类型(支持json/yaml)
 ```go
 obj := `
 {
@@ -240,9 +240,26 @@ type reqName struct {
 	Count     int               `json:"count"`
 	Data      map[string]string `json:"data"`
 	Duration  int               `json:"duration"`
-	entities  interface{}       `json:"json:entities"`
+	Entities  interface{}       `json:"entities"`
 	Timestamp int               `json:"timestamp"`
 	URI       string            `json:"uri"`
+}
+
+```
+### 2.2 option.WithTagNameFromKey tag直接使用key的名字(支持http header)
+http header比较特殊，传递的标准header头会有-符。可以使用option.WithTagNameFromKey()指定直接使用key的名字当作tag名(header:"xxx")这里的xxx
+```go
+h := http.Header{
+	"Content-Type":  []string{"application/json"},
+	"Accept": []string{"application/json"},
+}
+
+res, err := http.Marshal(h, option.WithStructName("test"), option.WithTagNameFromKey())
+
+// output res
+type test struct {
+	Accept      string `header:"Accept"`
+	ContentType string `header:"Content-Type"`
 }
 
 ```

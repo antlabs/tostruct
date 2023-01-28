@@ -5,7 +5,7 @@ type reqName struct {
 		Data map[string]string `json:"data"`
 	} `json:"data"`
 	Duration  int         `json:"duration"`
-	entities  interface{} `json:"json:entities"`
+	Entities  interface{} `json:"entities"`
 	Timestamp int         `json:"timestamp"`
 	URI       string      `json:"uri"`
 }

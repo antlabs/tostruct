@@ -1,0 +1,4 @@
+type test struct {
+	Accept      string `header:"Accept"`
+	ContentType string `header:"Content-Type"`
+}

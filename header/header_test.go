@@ -3,9 +3,11 @@
 package header
 
 import (
+	"bytes"
 	"fmt"
 	"go/format"
 	"net/http"
+	"os"
 	"testing"
 
 	"github.com/antlabs/tostruct/option"
@@ -41,6 +43,43 @@ func TestHead2struct(t *testing.T) {
 		fmt.Println(string(b))
 		assert.NoError(t, err)
 		assert.Equal(t, string(b), string(res))
+
+	}
+}
+
+func TestHead2struct2(t *testing.T) {
+	for _, tc := range [][]string{
+		{"Content-Type", "application/json", "Accept", "application/json"},
+	} {
+		h := make(http.Header)
+		for i := 0; i < len(tc); i += 2 {
+			h.Set(tc[i], tc[i+1])
+		}
+
+		res, err := Marshal(h, option.WithStructName("test"), option.WithTagNameFromKey())
+		assert.NoError(t, err)
+
+		all, err := os.ReadFile("../testdata/testheader.0.txt")
+		assert.NoError(t, err)
+		assert.Equal(t, string(bytes.TrimSpace(all)), string(res))
+
+	}
+}
+
+func TestHead2struct3(t *testing.T) {
+	for _, h := range []http.Header{
+		{
+			"Content-Type": []string{"application/json"},
+			"Accept":       []string{"application/json"},
+		},
+	} {
+
+		res, err := Marshal(h, option.WithStructName("test"), option.WithTagNameFromKey())
+		assert.NoError(t, err)
+
+		all, err := os.ReadFile("../testdata/testheader.0.txt")
+		assert.NoError(t, err)
+		assert.Equal(t, string(bytes.TrimSpace(all)), string(res))
 
 	}
 }

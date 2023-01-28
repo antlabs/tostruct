@@ -3,7 +3,7 @@ type reqName struct {
 	Count     int               `json:"count"`
 	Data      map[string]string `json:"data"`
 	Duration  int               `json:"duration"`
-	entities  interface{}       `json:"json:entities"`
+	Entities  interface{}       `json:"entities"`
 	Timestamp int               `json:"timestamp"`
 	URI       string            `json:"uri"`
 }
