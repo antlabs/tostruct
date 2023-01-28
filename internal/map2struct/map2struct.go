@@ -9,7 +9,7 @@ import (
 	"sort"
 
 	"github.com/antlabs/tostruct/internal/guesstype"
-	"github.com/antlabs/tostruct/internal/name"
+	"github.com/antlabs/tostruct/name"
 	"github.com/antlabs/tostruct/option"
 )
 
@@ -30,6 +30,10 @@ func MapGenStruct(m map[string][]string, opt option.Option) (res []byte, err err
 	for _, k := range ks {
 		v := m[k]
 		fieldName, tagName := name.GetFieldAndTagName(k)
+		if opt.TagNameFromKey {
+			tagName = k
+		}
+
 		tagStr := fmt.Sprintf("`%s:%q`", tag, tagName)
 		if len(v) == 0 {
 			fmt.Fprintf(&out, "%s string %s\n", fieldName, tagStr)

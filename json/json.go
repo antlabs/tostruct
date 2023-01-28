@@ -11,8 +11,8 @@ import (
 	"strings"
 
 	"github.com/antlabs/gstl/mapex"
-	"github.com/antlabs/tostruct/internal/name"
 	"github.com/antlabs/tostruct/internal/tab"
+	"github.com/antlabs/tostruct/name"
 	"github.com/antlabs/tostruct/option"
 )
 
@@ -254,10 +254,6 @@ func (f *JSON) marshalMap(key string, m map[string]interface{}, typePrefix strin
 }
 
 func (f *JSON) marshalArray(key string, a []interface{}, depth int, buf *bytes.Buffer, keyPath string) {
-	if len(a) == 0 {
-		buf.WriteString(fmt.Sprintf("%s interface{} `json:\"json:%s\"`", key, key))
-		return
-	}
 
 	f.marshalValue(key, a[0], true, depth, buf, keyPath)
 }
@@ -287,6 +283,10 @@ func (f *JSON) marshalValue(key string, obj interface{}, fromArray bool, depth i
 	case map[string]interface{}:
 		f.marshalMap(key, v, typePrefix, depth, buf, keyPath)
 	case []interface{}:
+		if len(v) == 0 {
+			buf.WriteString(fmt.Sprintf("%s interface{} `json:\"%s\"`", fieldName, key))
+			return
+		}
 		f.marshalArray(key, v, depth, buf, keyPath+"[0]")
 	case string:
 		buf.WriteString(fmt.Sprintf(stringFmt, fieldName, typePrefix, f.Tag, tagName))

@@ -5,10 +5,11 @@ package option
 type OptionFunc func(c *Option)
 
 type Option struct {
-	Inline     bool
-	Tag        string
-	StructName string
-	TypeMap    map[string]string
+	Inline         bool
+	Tag            string
+	StructName     string
+	TypeMap        map[string]string
+	TagNameFromKey bool
 }
 
 // 控制生成的结构体是否内联
@@ -56,9 +57,17 @@ func WithStructName(name string) OptionFunc {
 //	   ".data": "map[string]string"
 //	})
 //
-// 目录只支持json/yaml
+// 目前只支持json/yaml
 func WithSpecifyType(typeMap map[string]string) OptionFunc {
 	return func(c *Option) {
 		c.TypeMap = typeMap
+	}
+}
+
+// tag使用变量名, http header特殊一点
+// 目前仅仅支持http header marshal
+func WithTagNameFromKey() OptionFunc {
+	return func(c *Option) {
+		c.TagNameFromKey = true
 	}
 }
