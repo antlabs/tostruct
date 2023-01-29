@@ -50,6 +50,10 @@ func MapGenStruct(m map[string][]string, opt option.Option) (res []byte, err err
 
 	fmt.Fprint(&out, "}")
 
+	if opt.OutputFmtBefore != nil {
+		opt.OutputFmtBefore.Write(out.Bytes())
+	}
+
 	src, err := format.Source(out.Bytes())
 	if err != nil {
 		return nil, err
