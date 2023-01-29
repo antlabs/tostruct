@@ -171,6 +171,10 @@ func (f *JSON) marshal() (b []byte, err error) {
 		}
 	}
 
+	if f.OutputFmtBefore != nil {
+		f.OutputFmtBefore.Write(f.buf.Bytes())
+	}
+
 	if b, err = format.Source(f.buf.Bytes()); err != nil {
 		fmt.Printf("%s\n", f.buf.String())
 		return nil, err
@@ -266,12 +270,21 @@ func (f *JSON) marshalValue(key string, obj interface{}, fromArray bool, depth i
 
 	fieldName, tagName := name.GetFieldAndTagName(key)
 
+	// 重写key的类型
 	if f.TypeMap != nil {
 		fieldType, ok := f.TypeMap[keyPath]
 		if ok {
 			buf.WriteString(fmt.Sprintf(specifytFmt, fieldName, fieldType, f.Tag, tagName))
 			return
 		}
+	}
+
+	if f.GetValue != nil {
+		_, ok := f.GetValue[keyPath]
+		if ok {
+			f.GetValue[keyPath] = fmt.Sprintf("%s", obj)
+		}
+
 	}
 
 	tmpFieldName := strings.ToUpper(fieldName)

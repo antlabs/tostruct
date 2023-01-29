@@ -261,5 +261,27 @@ type test struct {
 	Accept      string `header:"Accept"`
 	ContentType string `header:"Content-Type"`
 }
+```
 
+### 2.3 option.WithOutputFmtBefore 支持(json/yaml/http header/query string)
+获取格式代码之前的buf输出，方便debug
+```go
+
+obj := `{"a":"b"}`
+var out bytes.Buffer
+all, err := json.Marshal([]byte(obj), option.WithStructName("reqName"), option.WithTagName("json"), option.WithOutputFmtBefore(&out))
+_ = all
+_ = err
+```
+
+### 2.4 option.WithGetValue 支持(json/yaml)
+把json串序列化成struct字符串的时候，顺带提取json字符串里面指定的key值
+```go
+obj := `{"a":"b"}`
+getValue := map[string]string{
+  ".a": "",
+}
+
+_, err := json.Marshal([]byte(obj), option.WithStructName("reqName"), option.WithTagName("json"), option.WithGetValue(getValue))
+fmt.Println(getValue[".a"], "b"))
 ```

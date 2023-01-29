@@ -2,14 +2,21 @@
 // apache 2.0
 package option
 
+import (
+	"io"
+	"os"
+)
+
 type OptionFunc func(c *Option)
 
 type Option struct {
-	Inline         bool
-	Tag            string
-	StructName     string
-	TypeMap        map[string]string
-	TagNameFromKey bool
+	Inline          bool
+	Tag             string
+	StructName      string
+	TypeMap         map[string]string
+	GetValue        map[string]string
+	TagNameFromKey  bool
+	OutputFmtBefore io.Writer //需要format之前的数据
 }
 
 // 控制生成的结构体是否内联
@@ -64,10 +71,29 @@ func WithSpecifyType(typeMap map[string]string) OptionFunc {
 	}
 }
 
+// 目前只支持json/yaml
+func WithGetValue(getValue map[string]string) OptionFunc {
+	return func(c *Option) {
+		c.GetValue = getValue
+	}
+}
+
 // tag使用变量名, http header特殊一点
 // 目前仅仅支持http header marshal
 func WithTagNameFromKey() OptionFunc {
 	return func(c *Option) {
 		c.TagNameFromKey = true
+	}
+}
+
+// WithOutputFmtBefore(nil) 日志数据打印到控制台
+// WithOutputFmtBefore(w) 日志数据打印到w里
+func WithOutputFmtBefore(w io.Writer) OptionFunc {
+	return func(c *Option) {
+		if w == nil {
+			c.OutputFmtBefore = os.Stdout
+		} else {
+			c.OutputFmtBefore = w
+		}
 	}
 }
