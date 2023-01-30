@@ -29,6 +29,14 @@ func MapGenStruct(m map[string][]string, opt option.Option) (res []byte, err err
 
 	for _, k := range ks {
 		v := m[k]
+		if opt.GetRawValue != nil {
+			_, ok := opt.GetRawValue[k]
+			if ok {
+				opt.GetRawValue[k] = guesstype.ToAny(v[0])
+
+			}
+		}
+
 		fieldName, tagName := name.GetFieldAndTagName(k)
 		if opt.TagNameFromKey {
 			tagName = k

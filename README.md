@@ -285,3 +285,15 @@ getValue := map[string]string{
 _, err := json.Marshal([]byte(obj), option.WithStructName("reqName"), option.WithTagName("json"), option.WithGetValue(getValue))
 fmt.Println(getValue[".a"], "b"))
 ```
+
+### 2.5 option.WithGetRawValue 支持(json/yaml/header/query string)
+把json串序列化成struct字符串的时候，顺带提取json字符串里面指定的key值, value是any(int/string/float64)类型
+```go
+obj := `{"a":"b"}`
+getValue := map[string]any{
+  ".a": "",
+}
+
+_, err := json.Marshal([]byte(obj), option.WithStructName("reqName"), option.WithTagName("json"), option.WithGetRawValue(getValue))
+fmt.Println(getValue[".a"], "b"))
+```

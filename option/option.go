@@ -15,6 +15,7 @@ type Option struct {
 	StructName      string
 	TypeMap         map[string]string
 	GetValue        map[string]string
+	GetRawValue     map[string]any
 	TagNameFromKey  bool
 	OutputFmtBefore io.Writer //需要format之前的数据
 }
@@ -75,6 +76,13 @@ func WithSpecifyType(typeMap map[string]string) OptionFunc {
 func WithGetValue(getValue map[string]string) OptionFunc {
 	return func(c *Option) {
 		c.GetValue = getValue
+	}
+}
+
+// 目前支持json/yaml/http header/query string
+func WithGetRawValue(getValue map[string]any) OptionFunc {
+	return func(c *Option) {
+		c.GetRawValue = getValue
 	}
 }
 

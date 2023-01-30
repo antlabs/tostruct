@@ -284,7 +284,13 @@ func (f *JSON) marshalValue(key string, obj interface{}, fromArray bool, depth i
 		if ok {
 			f.GetValue[keyPath] = fmt.Sprintf("%s", obj)
 		}
+	}
 
+	if f.GetRawValue != nil {
+		_, ok := f.GetRawValue[keyPath]
+		if ok {
+			f.GetRawValue[keyPath] = obj
+		}
 	}
 
 	tmpFieldName := strings.ToUpper(fieldName)
