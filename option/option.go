@@ -10,6 +10,7 @@ import (
 type OptionFunc func(c *Option)
 
 type Option struct {
+	IsProtobuf      bool
 	Inline          bool
 	Tag             string
 	StructName      string
@@ -103,5 +104,12 @@ func WithOutputFmtBefore(w io.Writer) OptionFunc {
 		} else {
 			c.OutputFmtBefore = w
 		}
+	}
+}
+
+// 使用protobuf, 仅仅protobuf包有效
+func WithProtobuf() OptionFunc {
+	return func(c *Option) {
+		c.IsProtobuf = true
 	}
 }
