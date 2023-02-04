@@ -15,7 +15,7 @@ import (
 
 func getStructStart(buf *bytes.Buffer, opt option.Option) {
 	if opt.IsProtobuf {
-		fmt.Fprintf(buf, "message %s {", opt.StructName)
+		fmt.Fprintf(buf, "message %s {\n", opt.StructName)
 		return
 	}
 
@@ -25,7 +25,7 @@ func getStructStart(buf *bytes.Buffer, opt option.Option) {
 func getEmptyField(buf *bytes.Buffer, opt option.Option, fieldName string, tagStr string, id int) {
 
 	if opt.IsProtobuf {
-		fmt.Fprintf(buf, "string %s = %d;\n", fieldName, id)
+		fmt.Fprintf(buf, "    string %s = %d;\n", fieldName, id)
 		return
 	}
 
@@ -35,20 +35,20 @@ func getEmptyField(buf *bytes.Buffer, opt option.Option, fieldName string, tagSt
 func getSliceField(buf *bytes.Buffer, opt option.Option, fieldName string, v string, tagStr string, id int) {
 
 	if opt.IsProtobuf {
-		fmt.Fprintf(buf, "repeated %s %s = %d;\n", guesstype.TypeOf(v), fieldName, id)
+		fmt.Fprintf(buf, "    repeated %s %s = %d;\n", guesstype.TypeOf(v, opt.IsProtobuf), fieldName, id)
 		return
 	}
 
-	fmt.Fprintf(buf, "%s []%s %s\n", fieldName, guesstype.TypeOf(v), tagStr)
+	fmt.Fprintf(buf, "%s []%s %s\n", fieldName, guesstype.TypeOf(v, opt.IsProtobuf), tagStr)
 }
 
 func getField(buf *bytes.Buffer, opt option.Option, fieldName string, v string, tagStr string, id int) {
 	if opt.IsProtobuf {
-		fmt.Fprintf(buf, "%s %s %s = %d;\n", guesstype.TypeOf(v), fieldName, tagStr, id)
+		fmt.Fprintf(buf, "    %s %s = %d;\n", guesstype.TypeOf(v, opt.IsProtobuf), fieldName, id)
 		return
 	}
 
-	fmt.Fprintf(buf, "%s %s %s\n", fieldName, guesstype.TypeOf(v), tagStr)
+	fmt.Fprintf(buf, "%s %s %s\n", fieldName, guesstype.TypeOf(v, opt.IsProtobuf), tagStr)
 }
 
 func MapGenStruct(m map[string][]string, opt option.Option) (res []byte, err error) {
@@ -100,6 +100,10 @@ func MapGenStruct(m map[string][]string, opt option.Option) (res []byte, err err
 
 	if opt.OutputFmtBefore != nil {
 		opt.OutputFmtBefore.Write(out.Bytes())
+	}
+
+	if opt.IsProtobuf {
+		return out.Bytes(), nil
 	}
 
 	src, err := format.Source(out.Bytes())

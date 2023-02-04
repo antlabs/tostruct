@@ -27,12 +27,15 @@ func IsBool(s string) bool {
 	return err == nil
 }
 
-func TypeOf(s string) string {
+func TypeOf(s string, isprotobuf bool) string {
 	if IsFloat(s) {
 		return "float64"
 	}
 
 	if IsInt(s) {
+		if isprotobuf {
+			return "int32"
+		}
 		return "int"
 	}
 

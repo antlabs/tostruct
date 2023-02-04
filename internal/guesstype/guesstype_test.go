@@ -95,6 +95,6 @@ func TestTypeOf(t *testing.T) {
 		{"true", "bool"},
 		{"false", "bool"},
 	} {
-		assert.Equal(t, TypeOf(tc.data), tc.need)
+		assert.Equal(t, TypeOf(tc.data, false), tc.need)
 	}
 }

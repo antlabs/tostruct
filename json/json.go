@@ -72,22 +72,22 @@ type Third struct {
 
 const (
 	// protobuf message开始
-	messageStart                = "message %s {\n"      // ok
-	messageStartArrayStruct     = "message %s {\n"      // TODO
-	messageEndStruct            = "}"                   // TODO
-	messageStartInlineMapBefore = "%s %s %s = %d;\n"    // repeated? int32 id = 4;
-	messageStartInlineMap       = "message %s {\n"      // 内联message体开始
-	messageEndInlineMap         = "}"                   // 内联结构体结束, TODO
-	messageStartMap             = "%s %s%s `%s:\"%s\"`" // 拆开结构体开始, TODO
-	messageEndMap               = "}"                   // 拆开结构体结束, TODO
-	messageEmptyMap             = "%s struct {" +
+	messageStart               = "message %s {\n"      // ok
+	messageStartArrayStruct    = "message %s {\n"      // TODO
+	messageEndStruct           = "}"                   // TODO
+	messageStartInlineMapAfter = "%s%s %s = %d;\n"     // repeated? int32 id = 4;
+	messageStartInlineMap      = "message %s {\n"      // 内联message体开始
+	messageEndInlineMap        = "}"                   // 内联结构体结束, TODO
+	messageStartMap            = "%s %s%s `%s:\"%s\"`" // 拆开结构体开始, TODO
+	messageEndMap              = "}\n"                 // 拆开结构体结束, TODO
+	messageEmptyMap            = "%s struct {" +
 		"} `%s:\"%s\"`" +
 		"}"
 	//messageNilFmt        = "%s any `%s:\"%s\"`" //TODO protobuf 暂时忽略
 	messageStringFmt   = "%sstring %s = %d;"  //repeated? int32 id = 2;
 	messageBoolFmt     = "%sbool %s = %d;"    //repeated? int32 id = 2;
 	messageFloat64Fmt  = "%sfloat64 %s = %d;" //repeated? int32 id = 2;
-	messageIntFmt      = "%sint %s = %d;"     //repeated? int32 id = 2;
+	messageIntFmt      = "%sint64 %s = %d;"   //repeated? int32 id = 2;
 	messageSpecifytFmt = "%s`%s:\"%s\"`"      //
 
 	// json --
@@ -164,9 +164,8 @@ func (j *JSON) getString(buf *bytes.Buffer, fieldName string, typePrefix string,
 	return
 }
 
-func (j *JSON) getStartInlineMap(buf *bytes.Buffer, fieldName string, typePrefix string, depth int, id int) {
+func (j *JSON) getStartInlineMap(buf *bytes.Buffer, fieldName string, typePrefix string, depth int) {
 	if j.IsProtobuf {
-		buf.WriteString(fmt.Sprintf(messageStartInlineMapBefore, typePrefix, fieldName, fieldName, id))
 
 		j.writeIndent(buf, depth)
 		buf.WriteString(fmt.Sprintf(messageStartInlineMap, fieldName))
@@ -176,9 +175,12 @@ func (j *JSON) getStartInlineMap(buf *bytes.Buffer, fieldName string, typePrefix
 	buf.WriteString(fmt.Sprintf(startInlineMap, fieldName, typePrefix))
 }
 
-func (j *JSON) getEndInlineMap(buf *bytes.Buffer, tagName string) {
+func (j *JSON) getEndInlineMap(buf *bytes.Buffer, fieldName string, typePrefix string, tagName string, depth int, id int) {
 	if j.IsProtobuf {
 		buf.WriteString(fmt.Sprintf(messageEndMap))
+
+		j.writeIndent(buf, depth)
+		buf.WriteString(fmt.Sprintf(messageStartInlineMapAfter, typePrefix, fieldName, tagName, id))
 		return
 	}
 
@@ -328,7 +330,7 @@ func (f *JSON) marshalMap(key string, m map[string]any,
 	if len(key) > 0 {
 
 		if f.Inline {
-			f.getStartInlineMap(buf, fieldName, typePrefix, depth, id)
+			f.getStartInlineMap(buf, fieldName, typePrefix, depth)
 			// 如果是内嵌结构体
 			//buf.WriteString(fmt.Sprintf(startInlineMap, fieldName, typePrefix))
 		} else {
@@ -356,7 +358,7 @@ func (f *JSON) marshalMap(key string, m map[string]any,
 	f.writeIndent(buf, depth)
 	if len(key) > 0 {
 		if f.Inline {
-			f.getEndInlineMap(buf, tagName)
+			f.getEndInlineMap(buf, fieldName, typePrefix, tagName, depth, id)
 		} else {
 			buf.WriteString(endStruct + "\n")
 
