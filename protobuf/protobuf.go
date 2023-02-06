@@ -6,8 +6,7 @@ import (
 )
 
 type Type interface {
-	map[string]any
-	//map[string]any | []any
+	map[string]any | []any
 }
 
 func Marshal[T Type](t T, opt ...option.OptionFunc) (b []byte, err error) {

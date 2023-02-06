@@ -120,6 +120,11 @@ func (j *JSON) getStructStart(buf *bytes.Buffer) {
 	return
 }
 
+// array 对象外层
+func (j *JSON) getArrayStart(buf *bytes.Buffer) {
+
+}
+
 func (j *JSON) getInt(buf *bytes.Buffer, fieldName string, typePrefix string, tagName string, id int) {
 	if j.IsProtobuf {
 
@@ -167,7 +172,11 @@ func (j *JSON) getString(buf *bytes.Buffer, fieldName string, typePrefix string,
 func (j *JSON) getStartInlineMap(buf *bytes.Buffer, fieldName string, typePrefix string, depth int) {
 	if j.IsProtobuf {
 
-		j.writeIndent(buf, depth)
+		// 这里是message 开始和上个普通成员缩进保持一致
+		// int32 x = 3;
+		// message xx {
+		// }
+		j.writeIndent(buf, depth-1)
 		buf.WriteString(fmt.Sprintf(messageStartInlineMap, fieldName))
 		return
 	}
@@ -332,7 +341,6 @@ func (f *JSON) marshalMap(key string, m map[string]any,
 		if f.Inline {
 			f.getStartInlineMap(buf, fieldName, typePrefix, depth)
 			// 如果是内嵌结构体
-			//buf.WriteString(fmt.Sprintf(startInlineMap, fieldName, typePrefix))
 		} else {
 			// 生成struct类型名和子结构体可以保存的子buf
 			structTypeName, buf2 := f.getStructTypeName(fieldName)
