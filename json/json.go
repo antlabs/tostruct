@@ -73,11 +73,10 @@ type Third struct {
 const (
 	// protobuf message开始
 	messageStart               = "message %s {\n"      // ok
-	messageStartArrayStruct    = "message %s {\n"      // TODO
+	messageStartArrayStruct    = "message %s {\n"      //
 	messageEndStruct           = "}"                   // TODO
 	messageStartInlineMapAfter = "%s%s %s = %d;\n"     // repeated? int32 id = 4;
 	messageStartInlineMap      = "message %s {\n"      // 内联message体开始
-	messageEndInlineMap        = "}"                   // 内联结构体结束, TODO
 	messageStartMap            = "%s %s%s `%s:\"%s\"`" // 拆开结构体开始, TODO
 	messageEndMap              = "}\n"                 // 拆开结构体结束, TODO
 	messageEmptyMap            = "%s struct {" +
@@ -88,7 +87,7 @@ const (
 	messageBoolFmt     = "%sbool %s = %d;"    //repeated? int32 id = 2;
 	messageFloat64Fmt  = "%sfloat64 %s = %d;" //repeated? int32 id = 2;
 	messageIntFmt      = "%sint64 %s = %d;"   //repeated? int32 id = 2;
-	messageSpecifytFmt = "%s`%s:\"%s\"`"      //
+	messageSpecifytFmt = "%s %s = %d;"        // ok
 
 	// json --
 	startStruct      = "type %s struct {\n"
@@ -97,7 +96,6 @@ const (
 	startInlineMap   = "%s %sstruct {\n"     // 内联结构体开始
 	endInlineMap     = "} `%s:\"%s\"`"       // 内联结构体结束
 	startMap         = "%s %s%s `%s:\"%s\"`" // 拆开结构体开始
-	endMap           = "}"                   // 拆开结构体结束
 	emptyMap         = "%s struct {" +
 		"} `%s:\"%s\"`" +
 		"}"
@@ -109,6 +107,16 @@ const (
 	intFmt        = "%s %sint `%s:\"%s\"`"
 	specifytFmt   = "%s %s `%s:\"%s\"`"
 )
+
+func (j *JSON) getSpecifytFmt(buf *bytes.Buffer, fieldName string, fieldType string, tagName string, id int) {
+
+	if j.IsProtobuf {
+		buf.WriteString(fmt.Sprintf(messageSpecifytFmt, fieldType, fieldName, id))
+		return
+	}
+
+	buf.WriteString(fmt.Sprintf(specifytFmt, fieldName, fieldType, j.Tag, tagName))
+}
 
 // 生成结构体或者message的开头
 func (j *JSON) getStructStart(buf *bytes.Buffer) {
@@ -122,7 +130,12 @@ func (j *JSON) getStructStart(buf *bytes.Buffer) {
 
 // array 对象外层
 func (j *JSON) getArrayStart(buf *bytes.Buffer) {
+	if j.IsProtobuf {
+		buf.WriteString(fmt.Sprintf(messageStartArrayStruct, j.StructName))
+		return
+	}
 
+	buf.WriteString(fmt.Sprintf(startArrayStruct, j.StructName))
 }
 
 func (j *JSON) getInt(buf *bytes.Buffer, fieldName string, typePrefix string, tagName string, id int) {
@@ -176,7 +189,7 @@ func (j *JSON) getStartInlineMap(buf *bytes.Buffer, fieldName string, typePrefix
 		// int32 x = 3;
 		// message xx {
 		// }
-		j.writeIndent(buf, depth-1)
+		//j.writeIndent(buf, depth)
 		buf.WriteString(fmt.Sprintf(messageStartInlineMap, fieldName))
 		return
 	}
@@ -253,7 +266,7 @@ func new[T Type](t T, opt ...option.OptionFunc) (f *JSON, err error) {
 		for _, o := range opt {
 			o(&rv.Option)
 		}
-		rv.buf.WriteString(fmt.Sprintf(startArrayStruct, rv.StructName))
+		rv.getArrayStart(&rv.buf)
 		rv.obj = data
 	}
 
@@ -262,7 +275,27 @@ func new[T Type](t T, opt ...option.OptionFunc) (f *JSON, err error) {
 }
 
 func (f *JSON) marshal() (b []byte, err error) {
-	f.marshalValue("", f.obj, false, 0, &f.buf, "", 1)
+	key := ""
+	_, isArr := f.obj.([]any)
+	fromArray := f.IsProtobuf && isArr
+	depth := 0
+	if fromArray {
+		// protobuf不支持像json一样的顶层是[]数组的对象，如果要把类似的结构转成protobuf.
+		// 先包装一个message，其中的成员是data
+		key = "Data"
+		//外层已经是message，里面的成员都要缩进
+		// message req {
+		//     message Data {
+		//       int32 x = 1;
+		//     }
+		//     repeated Data data = 1;
+		// }
+		depth = 1
+		// 临时补丁, 格式化protubf
+		f.writeIndent(&f.buf, depth)
+	}
+	id := 1
+	f.marshalValue(key, f.obj, fromArray, depth, &f.buf, "", &id)
 	f.buf.WriteString(endStruct)
 	if !f.Inline {
 		keys := mapex.Keys(f.structBuf)
@@ -318,7 +351,7 @@ func (f *JSON) marshalMap(key string, m map[string]any,
 	depth int,
 	buf *bytes.Buffer,
 	pathKey string,
-	id int,
+	id *int,
 ) {
 
 	remaining := len(m)
@@ -339,6 +372,7 @@ func (f *JSON) marshalMap(key string, m map[string]any,
 	if len(key) > 0 {
 
 		if f.Inline {
+			//f.writeIndent(buf, depth)
 			f.getStartInlineMap(buf, fieldName, typePrefix, depth)
 			// 如果是内嵌结构体
 		} else {
@@ -358,7 +392,7 @@ func (f *JSON) marshalMap(key string, m map[string]any,
 		f.writeIndent(buf, depth+1)
 
 		f.marshalValue(key, m[key], false, depth+1, buf, appendKeyPath(pathKey, key), id)
-		id++
+		(*id)++
 
 		f.writeObjSep(buf)
 	}
@@ -366,7 +400,7 @@ func (f *JSON) marshalMap(key string, m map[string]any,
 	f.writeIndent(buf, depth)
 	if len(key) > 0 {
 		if f.Inline {
-			f.getEndInlineMap(buf, fieldName, typePrefix, tagName, depth, id)
+			f.getEndInlineMap(buf, fieldName, typePrefix, tagName, depth, *id)
 		} else {
 			buf.WriteString(endStruct + "\n")
 
@@ -374,12 +408,12 @@ func (f *JSON) marshalMap(key string, m map[string]any,
 	}
 }
 
-func (f *JSON) marshalArray(key string, a []any, depth int, buf *bytes.Buffer, keyPath string, id int) {
+func (f *JSON) marshalArray(key string, a []any, depth int, buf *bytes.Buffer, keyPath string, id *int) {
 
 	f.marshalValue(key, a[0], true, depth, buf, keyPath, id)
 }
 
-func (f *JSON) marshalValue(key string, obj any, fromArray bool, depth int, buf *bytes.Buffer, keyPath string, id int) {
+func (f *JSON) marshalValue(key string, obj any, fromArray bool, depth int, buf *bytes.Buffer, keyPath string, id *int) {
 	typePrefix := ""
 	if fromArray {
 		typePrefix = "[]"
@@ -394,7 +428,7 @@ func (f *JSON) marshalValue(key string, obj any, fromArray bool, depth int, buf 
 	if f.TypeMap != nil {
 		fieldType, ok := f.TypeMap[keyPath]
 		if ok {
-			buf.WriteString(fmt.Sprintf(specifytFmt, fieldName, fieldType, f.Tag, tagName))
+			f.getSpecifytFmt(buf, fieldName, fieldType, tagName, *id)
 			return
 		}
 	}
@@ -430,20 +464,20 @@ func (f *JSON) marshalValue(key string, obj any, fromArray bool, depth int, buf 
 		}
 		f.marshalArray(key, v, depth, buf, keyPath+"[0]", id)
 	case string:
-		f.getString(buf, fieldName, typePrefix, tagName, id)
+		f.getString(buf, fieldName, typePrefix, tagName, *id)
 	case float64: //json默认解析的数字是float64类型
 		// int
 		if float64(int(v)) == v {
-			f.getInt(buf, fieldName, typePrefix, tagName, id)
+			f.getInt(buf, fieldName, typePrefix, tagName, *id)
 			return
 		}
 
 		// float64
-		f.getFloat64(buf, fieldName, typePrefix, tagName, id)
+		f.getFloat64(buf, fieldName, typePrefix, tagName, *id)
 	case int: //yaml解析成map[string]any，数值是int类型
-		f.getInt(buf, fieldName, typePrefix, tagName, id)
+		f.getInt(buf, fieldName, typePrefix, tagName, *id)
 	case bool:
-		f.getBool(buf, fieldName, typePrefix, tagName, id)
+		f.getBool(buf, fieldName, typePrefix, tagName, *id)
 	case nil:
 		buf.WriteString(fmt.Sprintf(nilFmt, fieldName, f.Tag, tagName))
 	}
