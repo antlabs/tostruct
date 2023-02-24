@@ -1,0 +1,6 @@
+type reqName struct {
+	Payload struct {
+		Bodies interface{} `yaml:"bodies"`
+		Ext    struct{}    `yaml:"ext"`
+	} `yaml:"payload"`
+}

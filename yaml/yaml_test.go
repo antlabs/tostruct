@@ -49,3 +49,41 @@ f:
 		assert.Equal(t, string(bytes.TrimSpace(need)), string(bytes.TrimSpace(all)))
 	}
 }
+
+// 测试文件以 data编号命名
+// 生成后的结构体文件以 need编码.struct
+const (
+	dataFormat  = "../testdata/data%d.yaml"
+	needFormat1 = "../testdata/need%d.yaml.0.struct"
+	needFormat2 = "../testdata/need%d.yaml.1.struct"
+)
+
+func Test_Gen_Obj_YAML2(t *testing.T) {
+	for i := 0; i < 1; i++ {
+		data, err := os.ReadFile(fmt.Sprintf(dataFormat, i))
+		assert.NoError(t, err)
+
+		need1, err := os.ReadFile(fmt.Sprintf(needFormat1, i))
+		assert.NoError(t, err)
+
+		need2, err := os.ReadFile(fmt.Sprintf(needFormat2, i))
+		assert.NoError(t, err)
+
+		var out bytes.Buffer
+		got1, err := Marshal(data, option.WithStructName("reqName"), option.WithOutputFmtBefore(&out))
+		assert.NoError(t, err, out.String())
+		out.Reset()
+
+		got2, err := Marshal(data, option.WithStructName("reqName"), option.WithNotInline(), option.WithOutputFmtBefore(&out))
+		assert.NoError(t, err, out.String())
+
+		need1 = bytes.TrimSpace(need1)
+		need2 = bytes.TrimSpace(need2)
+
+		got1 = bytes.TrimSpace(got1)
+		got2 = bytes.TrimSpace(got2)
+
+		assert.Equal(t, need1, got1)
+		assert.Equal(t, need2, got2)
+	}
+}
