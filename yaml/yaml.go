@@ -8,19 +8,28 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-func Marshal(bytes []byte, opt ...option.OptionFunc) (b []byte, err error) {
-	var o map[string]any
-	var a []any
+func Unmarshal(bytes []byte) (o map[string]any, a []any, err error) {
 
 	err = yaml.Unmarshal(bytes, &o)
 	if err != nil {
 		if err = yaml.Unmarshal(bytes, &a); err != nil {
-			return nil, err
+			return nil, nil, err
 		}
+	}
+	return
+}
 
-		return json.Marshal(a, opt...)
+func Marshal(bytes []byte, opt ...option.OptionFunc) (b []byte, err error) {
+
+	o, a, err := Unmarshal(bytes)
+	if err != nil {
+		return nil, err
 	}
 
 	opt = append(opt, option.WithTagName("yaml"))
-	return json.Marshal(o, opt...)
+	if o != nil {
+		return json.Marshal(o, opt...)
+	}
+
+	return json.Marshal(a, opt...)
 }
