@@ -3,7 +3,12 @@
 [![codecov](https://codecov.io/gh/antlabs/tostruct/branch/master/graph/badge.svg)](https://codecov.io/gh/antlabs/tostruct)
 
 json/yaml/http header/query string 转成struct定义，免去手写struct的烦恼.    
-
+## 零、特性
+* json 生成golang struct
+* yaml 生成golang struct
+* http.Header 生成golang struct
+* http url 生成golang struct
+* json/yaml 生成protobuf message定义
 
 ## 一、json/yaml/http header/query string 生成结构体
 ### 1.1 json字符串生成结构体
@@ -210,7 +215,26 @@ type F struct {
 */
 }
 ```
+### 1.5 json/yaml 生成protobuf message定义
+```go
+import (
+    "github.com/antlabs/tostruct/protobuf"
+    "github.com/antlabs/tostruct/option"
+)
 
+func main() {
+	all, err := Marshal([]byte(`{"int":3, "float64": 3.14, "string":"hello"}`), option.WithStructName("reqProtobuf"))
+	fmt.Println(err)
+	os.Stdout.Write(all)
+}
+/*
+message reqProtobuf {
+    float64 Float64 = 1;
+    int64 Int = 2;
+    string String = 3;
+}
+*/
+```
 ## 二、各种配置项函数用法
 ### 2.1 option.WithSpecifyType 指定生成类型(支持json/yaml)
 ```go

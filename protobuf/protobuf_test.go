@@ -8,6 +8,12 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+func Test_Protobuf_Str(t *testing.T) {
+	all, err := Marshal([]byte(`{"int":3, "float64": 3.14, "string":"hello"}`), option.WithStructName("reqProtobuf"))
+	assert.NoError(t, err)
+	os.Stdout.Write(all)
+}
+
 // obj
 func Test_Protobuf_OBJ(t *testing.T) {
 	all, err := Marshal(map[string]any{"int": 0, "float64": 3.3, "string": "hello"}, option.WithStructName("reqProtobuf"))
