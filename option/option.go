@@ -11,6 +11,7 @@ type OptionFunc func(c *Option)
 
 type Option struct {
 	IsProtobuf      bool
+	UsePtr          map[string]bool
 	Inline          bool
 	Tag             string
 	StructName      string
@@ -107,9 +108,22 @@ func WithOutputFmtBefore(w io.Writer) OptionFunc {
 	}
 }
 
-// 使用protobuf, 仅仅protobuf包有效
+// 使用protobuf, 仅限protobuf包有效
 func WithProtobuf() OptionFunc {
 	return func(c *Option) {
 		c.IsProtobuf = true
+	}
+}
+
+// json/yaml有效
+func WithUsePtrField(fieldList []string) OptionFunc {
+	return func(c *Option) {
+		if c.UsePtr == nil {
+			c.UsePtr = make(map[string]bool)
+		}
+
+		for _, v := range fieldList {
+			c.UsePtr[v] = true
+		}
 	}
 }

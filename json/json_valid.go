@@ -40,7 +40,7 @@ func ValidAndUnmarshal(b []byte) (o map[string]any, a []any, err error) {
 	}
 
 	if err := json.Unmarshal(b, &o); err == nil /*没有错误说明是json 对象字符串*/ {
-		return o, nil, ErrValid
+		return o, nil, nil
 	}
 
 	// 可能是array对象
