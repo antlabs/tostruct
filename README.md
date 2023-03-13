@@ -321,3 +321,27 @@ getValue := map[string]any{
 _, err := json.Marshal([]byte(obj), option.WithStructName("reqName"), option.WithTagName("json"), option.WithGetRawValue(getValue))
 fmt.Println(getValue[".a"], "b"))
 ```
+### 2.6 option.WithUsePtrType 支持(json/yaml)
+```go
+obj := `
+{
+  "string": "",
+  "int": 0,
+  "float64": 3.1415,
+  "bool": false
+}
+`
+ptrField := []string{".string", ".int", ".float64", ".bool"} //指定字段名使用指针类型
+
+all, err := json.Marshal([]byte(obj), option.WithStructName("reqName"), option.WithGetRawValue(ptrField))
+fmt.Printf("%s\n", all)
+// 输出:
+/*
+type reqName struct {
+	Bool    *bool    `json:"bool"`
+	Float64 *float64 `json:"float64"`
+	Int     *int     `json:"int"`
+	String  *string  `json:"string"`
+}
+*/
+```

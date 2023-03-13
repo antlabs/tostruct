@@ -64,11 +64,11 @@ func Test_Gen_Obj_JSONEx(t *testing.T) {
 		assert.Equal(t, need1, got1)
 		assert.Equal(t, need2, got2)
 
-		gotPtr1, err := Marshal(data, option.WithStructName("reqName"), option.WithOutputFmtBefore(&out), option.WithUsePtrField(keys))
+		gotPtr1, err := Marshal(data, option.WithStructName("reqName"), option.WithOutputFmtBefore(&out), option.WithUsePtrType(keys))
 		assert.NoError(t, err, out.String())
 		out.Reset()
 
-		gotPtr2, err := Marshal(data, option.WithStructName("reqName"), option.WithNotInline(), option.WithOutputFmtBefore(&out), option.WithUsePtrField(keys))
+		gotPtr2, err := Marshal(data, option.WithStructName("reqName"), option.WithNotInline(), option.WithOutputFmtBefore(&out), option.WithUsePtrType(keys))
 		assert.NoError(t, err, out.String())
 
 		needPtr1 = bytes.TrimSpace(needPtr1)
