@@ -1,0 +1,6 @@
+type reqName struct {
+	Bool    bool    `json:"bool"`
+	Float64 float64 `json:"float64"`
+	Int     int     `json:"int"`
+	String  string  `json:"string"`
+}
