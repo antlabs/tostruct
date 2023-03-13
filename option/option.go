@@ -115,8 +115,10 @@ func WithProtobuf() OptionFunc {
 	}
 }
 
+// 传入的字段使用指针类型
+// 入参[]string{".字段名1", ".字段名2"}
 // json/yaml有效
-func WithUsePtrField(fieldList []string) OptionFunc {
+func WithUsePtrType(fieldList []string) OptionFunc {
 	return func(c *Option) {
 		if c.UsePtr == nil {
 			c.UsePtr = make(map[string]bool)
